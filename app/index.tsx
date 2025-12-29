@@ -1,17 +1,23 @@
-import { Link, router } from "expo-router";
-import { Text, View, StyleSheet,Button,Image } from "react-native";
+import { getLocalUserInfo } from "@/lib/util";
+import { Link } from "expo-router";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 const menuOptions = [
   {
     url: './wms0007',
-    text: '收货',
+    text: '收 货',
     icon:require("../assets/images/shouhuo.png")
   },
   {
     url: './wms0008',
-    text: '上架',
+    text: '上 架',
     icon:require("../assets/images/shangjia.png")
   },
-
+  {
+    url: './wms0017',
+    text: '库存查询',
+    icon:require("../assets/images/pandian.png")
+  },
   {
     url: './wms0018',
     text: '库位转移',
@@ -22,23 +28,37 @@ const menuOptions = [
     text: '库位补货',
     icon:require("../assets/images/buhuo.png")
   },
+  {
+    url: './wms0028',
+    text: '快速移动',
+    icon:require("../assets/images/kuaisuzhuanyi.png")
+  },
 ]
 export default function Index() {
+  const userInfo = getLocalUserInfo();
   return (
-    <View
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.loginWrapper}>
-        <Image style={{width:66,height:66}} source={require("../assets/images/logo.png")} />
-        <Link href={"./login"} style={{fontSize:20,fontWeight:"bold",marginLeft:20}}><Text>登录</Text></Link>
+        <Image style={{width:44,height:44}} source={require("../assets/images/logo.png")} />
+        {
+          userInfo ? (
+            <Text style={{fontSize:18,marginLeft:20}}>{userInfo?.userName}</Text>
+          ):(
+            <Link href={"./login"} replace style={styles.loginButton}>
+              <Text>登 录</Text>
+            </Link>
+          )
+        }
       </View>
-      <View style={styles.gridMenu}> 
+      <View className="flex-row flex-wrap"> 
         {
           menuOptions.map((item, index) => (
-            <View onTouchEnd={() => router.navigate(item.url as any) } style={styles.menuItem} key={index}>
-              <Image style={{width:40,height:40,marginBottom:6,display:"flex"}} source={item.icon} />
-              <Text>{item.text}</Text>
-            </View>
+            <Link href={item.url as any} asChild className="w-1/4 justify-center items-center mb-4" key={index}>
+              <TouchableOpacity >
+                <Image style={{width:40,height:40,marginBottom:6,display:"flex"}} source={item.icon} />
+                <Text>{item.text}</Text>
+              </TouchableOpacity>
+            </Link>
           ))
         }
       </View>
@@ -51,16 +71,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     height: "100%",
   },
-  text: {
-  },
+  
   gridMenu:{
     display:"flex",
     flexWrap:"wrap",
     flexDirection:"row",
-    padding:10,
   },
   menuItem:{
-    width:"25%",
+    flex:1,
     display:"flex",
     justifyContent:"center",
     alignItems:"center",
@@ -71,5 +89,14 @@ const styles = StyleSheet.create({
     flexDirection:"row",
     alignItems:"center",
     padding:20,
+  },
+  loginButton:{
+    padding:10,
+    borderRadius:5,
+    margin:10,
+    fontSize:16,
+    width:100,
+    backgroundColor:"#fcfcfc",
+    textAlign:"center",
   },
 });

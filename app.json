@@ -24,7 +24,8 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
@@ -39,7 +40,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -49,7 +51,8 @@
       "router": {},
       "eas": {
         "projectId": "b3574ec6-e82c-42c7-b04b-e365bf42a02b"
-      }
+      },
+      "api_url": "https://bs-api-dev.gongpinniu.com"
     },
     "owner": "jin-benben"
   }

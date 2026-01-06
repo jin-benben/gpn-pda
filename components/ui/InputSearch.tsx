@@ -1,10 +1,12 @@
 // components/InputSearch.tsx
+import theme from '@/const/theme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import React, { useRef, useState } from 'react';
+import React, { RefObject } from 'react';
 import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
 interface InputSearchProps extends TextInputProps {
   onSearch?: (text: string) => void;
+  ref?:RefObject<TextInput | null>;
 }
 
 const InputSearch: React.FC<InputSearchProps> = ({ 
@@ -12,29 +14,20 @@ const InputSearch: React.FC<InputSearchProps> = ({
   onSubmitEditing,
   ...props 
 }) => {
-  const inputRef = useRef<TextInput>(null);
-  const [value, onChangeText] = useState('');
-  const handleSearch = () => {
-    onSearch?.(value);
-    inputRef.current?.blur();
-  };
-
+  
   const handleSubmit = (e: any) => {
     onSubmitEditing?.(e);
     onSearch?.(e.nativeEvent.text);
-    inputRef.current?.blur();
   };
 
   return (
     <View style={styles.container}>
-      <MaterialCommunityIcons style={styles.searchButton}  name="line-scan" size={16} color="#e40614" />
+      <MaterialCommunityIcons style={styles.searchButton} name="line-scan" size={16} color={theme.main} />
       <TextInput
-        ref={inputRef}
         style={styles.input}
         placeholder="搜索..."
         returnKeyType="search"
         onSubmitEditing={handleSubmit}
-        onChangeText={onChangeText}
         selectTextOnFocus
         {...props}
       />

@@ -1,91 +1,80 @@
 import { commonRequestFetch } from "@/lib/commonServices";
-import { User, setLocalUserInfo } from "@/lib/util";
-import { useForm } from "@tanstack/react-form";
+import { User, removeLocalUserInfo, setLocalUserInfo } from "@/lib/util";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import * as z from "zod";
 const schema = z.object({
   password: z.string().min(1, "请输入密码"),
-  phone:z.string().min(1, "请输入账号"),
+  phone: z.string().min(1, "请输入账号"),
 });
 
-import type { AnyFieldApi } from '@tanstack/react-form';
+import { FormikTextInput } from "@/components/FormItem";
+import theme from "@/const/theme";
+import { Formik } from "formik";
+import { useEffect } from "react";
 
-function FieldInfo({ field }: { field: AnyFieldApi }) {
-  console.log()
-  return (
-    <>
-      {field.state.meta.isTouched && !field.state.meta.isValid ? (
-        <Text style={{ color: "red",fontSize:12 }}>{field.state.meta.errors.map((e) => e.message)}</Text>
-      ) : null}
-    </>
-  )
-}
 export default function LoginScreen() {
   const router = useRouter();
-  const form = useForm({
-    defaultValues: {
-      phone: "",
-      password: "",
-    },
-    validators: {
-      onChange: schema,
-    },
-    onSubmit: async ({ value }) => {
-      commonRequestFetch<any,User>({
-        functionCode:"employeeLogin",
-        url:"/loginPwd",
-        prefix:"jms-auth",
-        data:value,
-      }).then(res=>{ 
-        setLocalUserInfo(res)
+  useEffect(() => { 
+    removeLocalUserInfo()
+  }, []);
+  const onSubmit = (v: any) => {
+    return commonRequestFetch<any, User>({
+      functionCode: "employeeLogin",
+      url: "/loginPwd",
+      prefix: "jms-auth",
+      data: v,
+    })
+      .then((res) => {
+        setLocalUserInfo(res);
         router.replace("/");
-      }).catch(err=>{ 
-        console.log(err,'登录失败')
       })
-    },
-  });
-  
+      .catch((err) => {
+        console.log(err, "登录失败");
+      });
+  };
+
   return (
-    <View style={styles.container}>
-      <form.Field name="phone">
-        {(field) => (
+    <Formik onSubmit={onSubmit} initialValues={{ phone: "", password: "" }}>
+      {(props) => (
+        <View style={styles.container}>
           <View style={styles.formItem}>
             <Text style={styles.labelItem}>手机号:</Text>
-            <TextInput
+            <FormikTextInput
+              name="phone"
               placeholder="请输入手机号"
               style={styles.textInput}
-              value={field.state.value}
-              onChangeText={field.handleChange}
             />
-            <FieldInfo field={field} />
           </View>
-        )}
-      </form.Field>
-      <form.Field name="password">
-        {(field) => (
           <View style={styles.formItem}>
             <Text style={styles.labelItem}>密 码:</Text>
-            <TextInput
+            <FormikTextInput
+              name="password"
+              secureTextEntry
               textContentType="password"
               placeholder="请输入密码"
               style={styles.textInput}
-              value={field.state.value}
-              secureTextEntry
-              onChangeText={field.handleChange}
             />
-             <FieldInfo field={field} />
           </View>
-        )}
-      </form.Field>
-      
-      <TouchableOpacity style={styles.submitBtn} onPress={()=>form.handleSubmit()}>
-        {
-          form.state.isSubmitting && <ActivityIndicator animating={true} color={"#fff"}/>
-        }
-        <Text style={styles.buttonText}>登录</Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity
+            disabled={props.isSubmitting}
+            style={styles.submitBtn}
+            onPress={() => props.handleSubmit()}
+          >
+            {props.isSubmitting && (
+              <ActivityIndicator animating={true} color={"#fff"} />
+            )}
+            <Text style={styles.buttonText}>登录</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </Formik>
   );
 }
 const styles = StyleSheet.create({
@@ -116,7 +105,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 6,
     marginTop: 10,
-    backgroundColor: "#e40614",
+    backgroundColor: theme.main,
   },
   textInput: {
     borderWidth: 1,

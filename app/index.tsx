@@ -1,7 +1,8 @@
 import { getLocalUserInfo } from "@/lib/util";
-import { Link } from "expo-router";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Constants from "expo-constants";
+import { Link, Stack } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
 const menuOptions = [
   {
     url: './wms0007',
@@ -18,11 +19,11 @@ const menuOptions = [
     text: '库存查询',
     icon:require("../assets/images/pandian.png")
   },
-  {
-    url: './wms0018',
-    text: '库位转移',
-    icon:require("../assets/images/zhuanyi.png")
-  },
+  // {
+  //   url: './wms0018',
+  //   text: '库位转移',
+  //   icon:require("../assets/images/zhuanyi.png")
+  // },
   {
     url: './wms0031',
     text: '库位补货',
@@ -38,6 +39,13 @@ export default function Index() {
   const userInfo = getLocalUserInfo();
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{
+        headerRight: () => (
+          <Link href={"./login"} replace>
+            <MaterialIcons name="logout" size={24} color="gray" />
+          </Link>
+        )
+      }} />
       <View style={styles.loginWrapper}>
         <Image style={{width:44,height:44}} source={require("../assets/images/logo.png")} />
         {
@@ -61,6 +69,9 @@ export default function Index() {
             </Link>
           ))
         }
+      </View>
+      <View className="justify-center items-center mt-2">
+         <Text className="text-gray-500 text-sm">当前版本号：{Constants.expoConfig?.version}</Text>
       </View>
     </View>
   );

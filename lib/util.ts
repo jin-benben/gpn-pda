@@ -23,3 +23,7 @@ export function getLocalUserInfo() {
 export function setLocalUserInfo(userInfo: User) { 
   SecureStore.setItem("user", JSON.stringify(userInfo));
 }
+
+export function removeLocalUserInfo() { 
+  SecureStore.deleteItemAsync("user");
+}

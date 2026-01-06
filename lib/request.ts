@@ -13,7 +13,6 @@ const request = axios.create({
 });
 
 request.interceptors.request.use((config) => {
-  console.log('request', Constants.expoConfig?.extra?.api_url);
   const userInfo:any = getLocalUserInfo()
   if (userInfo?.token) {
     config.headers?.set('Authorization-Token', userInfo.token);
@@ -30,12 +29,9 @@ request.interceptors.response.use(
       router.replace('/login');
       return Promise.reject("登录已过期");
     }
-    
     return Promise.reject(new Error(response.data.message));
   },
   (error) => {
-    // 根据配置决定是否显示错误
-    console.log(JSON.stringify(error),'异常了');
     return Promise.reject(error);
   },
 );

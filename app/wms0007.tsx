@@ -1,44 +1,68 @@
-import InputSearch from '@/components/InputSearch';
+import InputSearch from '@/components/ui/InputSearch';
+import PageIndicator from '@/components/ui/PageIndicator';
+import { queryOneFetch } from '@/lib/commonServices';
 import '@/lib/request';
-import { useForm } from '@tanstack/react-form';
+import { useIsFocused } from '@react-navigation/native';
+import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, ToastAndroid, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 export default function Wms0007Screen() {
+  const inputRef = useRef<TextInput>(null);
   const router = useRouter();
-  const form = useForm({
-    defaultValues: {
-      name: '张三丰s',
+  const isFocused = useIsFocused();
+  const [docNo,setDocNo] = useState("");
+  const {mutate,data,isPending} = useMutation({
+    mutationKey: ['wms0006'],
+    mutationFn:(docNo:string)=>{
+      return queryOneFetch<any,any>({
+        functionCode:"wms0006",
+        prefix:"wms",
+        data:{
+          docNo
+        }
+      })
     },
-    onSubmit: async ({ value }) => {
-      // Do something with form data
-      console.log(value)
-      ToastAndroid.showWithGravity('提交成功',ToastAndroid.LONG,ToastAndroid.CENTER)
-      // Alert.alert('提交成功', JSON.stringify(value),[{text: '取消',style:"cancel"},{text: '确定'}])
-    },
+    onSuccess: (data) => {
+      if(data){
+        router.navigate({
+          pathname:"/wms0007/[docNo]",
+          params:{
+            docNo:data.docNo
+          },
+        });
+        setDocNo("");
+      }else{
+        Alert.alert("收货申请单不存在","",[{text: '确定',onPress:()=>inputRef.current?.focus()}])
+      }
+    }
   })
-  const a = useSafeAreaInsets();
   const handleSearch = (searchText: string) => {
-    console.log('搜索内容:', searchText);
-    // 在这里执行搜索逻辑
+    mutate(searchText)
   };
-  
+  useEffect(() => {
+    if (isFocused) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isFocused]);
   return (
     <>
       <View style={styles.container}>
         <View style={styles.headerWrapper}>
           <InputSearch 
+            ref={inputRef}
             placeholder="请输入或扫描收货申请单号" 
             onSearch={handleSearch}
+            onChangeText={setDocNo}
+            value={docNo}
             returnKeyType='search'
-            autoFocus
             selectTextOnFocus
+            autoFocus
           />
         </View>
-        <View className='flex justify-between '>
-          <Text className='text-red-500'>收货申请单</Text>
-        </View>
+        {isPending && <PageIndicator />}
       </View>
     </>
   );

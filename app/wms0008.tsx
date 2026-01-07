@@ -1,3 +1,4 @@
+import ClipboardText from "@/components/ClipboardText";
 import {
   FormikCheckbox,
   FormikLocationPicker,
@@ -34,7 +35,7 @@ const RenderItem: FC<RenderItemProps> = ({
   onOpenModal,
 }) => {
   return (
-    <View className="p-2 border border-gray-300 border-solid mb-2 rounded">
+    <View className="p-2 border border-gray-300 border-solid mb-2 rounded gap-1">
       <View className="flex-row">
         <Text className="font-bold">{index + 1}. </Text>
         <Text>{item.docTypeNameInfo}：</Text>
@@ -42,8 +43,11 @@ const RenderItem: FC<RenderItemProps> = ({
       </View>
       <Text className="my-1">送货方：{item.deliveryOrganizationName}</Text>
       <Text>
-        ({item.itemCode}) {item.itemName}
+        {item.itemName}
       </Text>
+      <ClipboardText text={item.itemCode}>
+        <Text className="text-blue-600">货品编码：{item.itemCode}</Text>
+      </ClipboardText>
       <View className="flex-row mb-2 items-center">
         <Text>上架库位：</Text>
         <FormikLocationPicker
@@ -168,6 +172,7 @@ export default function App() {
         wms000802,
       },
     }).then((res) => {
+      console.log(directConfirm);
       if (directConfirm==1) {
         commonRequestFetch({
           functionCode: "wms0008",
@@ -183,7 +188,7 @@ export default function App() {
              text1: "上架成功",
              topOffset: 0,
            });
-        });
+        }).catch((err) => Alert.alert("上架失败",err.message,[{text: '确定'}]));
       }
     }).catch((err) => Alert.alert("上架失败",err.message,[{text: '确定'}]));
   };

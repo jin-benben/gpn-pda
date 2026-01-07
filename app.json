@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.jinbenben.gpnwms"
+      "package": "com.jinbenben.gpnwms",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
@@ -33,7 +34,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/logo.png",
-          "imageWidth": 200,
+          "imageWidth": 100,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
@@ -41,7 +42,18 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildArchs": [
+              "armeabi-v7a",
+              "arm64-v8a"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -54,6 +66,12 @@
       },
       "api_url": "https://bs-api-dev.gongpinniu.com"
     },
-    "owner": "jin-benben"
+    "owner": "jin-benben",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/b3574ec6-e82c-42c7-b04b-e365bf42a02b"
+    }
   }
 }

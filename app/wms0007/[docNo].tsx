@@ -106,7 +106,8 @@ export default function Wms0007Screen() {
         data,
       });
     },
-    onSuccess: () => {
+    onSuccess: (data,variables) => {
+      console.log("data", variables);
       Toast.show({
         type: "success",
         text1: "收货成功",
@@ -205,7 +206,7 @@ export default function Wms0007Screen() {
         baseDocNoInfo: baseDocNoInfo.toString(),
         wms000702,
         receiverMode: value.receiverMode,
-        directConfirm: Number(value.directConfirm),
+        directConfirm: value.directConfirm,
       },
       pick(value.list[0], [
         "deliveryType",

@@ -19,11 +19,6 @@ const menuOptions = [
     text: '库存查询',
     icon:require("../assets/images/pandian.png")
   },
-  // {
-  //   url: './wms0018',
-  //   text: '库位转移',
-  //   icon:require("../assets/images/zhuanyi.png")
-  // },
   {
     url: './wms0031',
     text: '库位补货',
@@ -73,6 +68,7 @@ export default function Index() {
       <View className="justify-center items-center mt-2">
          <Text className="text-gray-500 text-sm">当前版本号：{Constants.expoConfig?.version}</Text>
       </View>
+     
     </View>
   );
 }

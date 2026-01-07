@@ -1,5 +1,4 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useEffect, useState } from "react";
 import { Modal, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
 interface PopupProps {
   visible: boolean;
@@ -25,7 +24,7 @@ export default function Popup({
           <View style={styles.headerWrapper}>
             <Text style={styles.title}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <MaterialIcons name="close" size={20} color="gray" />
+              <MaterialIcons name="close" size={24} color="gray" />
             </TouchableOpacity>
           </View>
           <View style={{flex:1}}>{children}</View>

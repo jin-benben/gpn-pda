@@ -1,8 +1,9 @@
+import UpdateManager from "@/components/UpdateManager";
 import { getLocalUserInfo } from "@/lib/util";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Constants from "expo-constants";
-import { Link, Stack } from "expo-router";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Link, Stack, router, useRouter } from "expo-router";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
 const menuOptions = [
   {
     url: './wms0007',
@@ -29,9 +30,26 @@ const menuOptions = [
     text: '快速移动',
     icon:require("../assets/images/kuaisuzhuanyi.png")
   },
+  {
+    url: './combination',
+    text: '组合装查询',
+    icon:require("../assets/images/pandian.png")
+  },
+  {
+    url: './wms0034',
+    text: '收货异常',
+    icon:require("../assets/images/yichang.png")
+  },
 ]
 export default function Index() {
+  const router = useRouter();
   const userInfo = getLocalUserInfo();
+  const gridItemPress = (item:any) => { 
+    console.log(item);
+    // router.navigate({
+    //   pathname:item.url,
+    // });
+  }
   return (
     <View style={styles.container}>
       <Stack.Screen options={{
@@ -56,19 +74,16 @@ export default function Index() {
       <View className="flex-row flex-wrap"> 
         {
           menuOptions.map((item, index) => (
-            <Link href={item.url as any} asChild className="w-1/4 justify-center items-center mb-4" key={index}>
-              <TouchableOpacity >
-                <Image style={{width:40,height:40,marginBottom:6,display:"flex"}} source={item.icon} />
+            <Link href={item.url as any} key={index} asChild> 
+              <TouchableOpacity className="w-1/4 justify-center items-center h-24 gap-2 py-2">
+                <Image style={{width:30,height:30}} source={item.icon} />
                 <Text>{item.text}</Text>
               </TouchableOpacity>
             </Link>
           ))
         }
       </View>
-      <View className="justify-center items-center mt-2">
-         <Text className="text-gray-500 text-sm">当前版本号：{Constants.expoConfig?.version}</Text>
-      </View>
-     
+      <UpdateManager />
     </View>
   );
 }

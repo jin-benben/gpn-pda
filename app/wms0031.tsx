@@ -4,16 +4,17 @@ import Tabs from "@/components/Tabs";
 import Empty from "@/components/ui/Empty";
 import useEnum from "@/hooks/useEnum";
 import { commonRequestFetch, queryListFetch } from "@/lib/commonServices";
+import { useIsFocused } from "@react-navigation/native";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { memo, useDeferredValue, useState } from "react";
 import { FlatList, GestureResponderEvent, ListRenderItemInfo, Pressable, RefreshControl, Text, ToastAndroid, TouchableOpacity, View } from "react-native";
 
 interface RenderItemProps extends ListRenderItemInfo<any>{
   item:any,
   callback:()=>void
 }
-const RenderItem = ({item,callback}:RenderItemProps)=>{
+const RenderItem = memo(({item,callback}:RenderItemProps)=>{
   const router = useRouter();
   const startMutation = useMutation({
     mutationKey: ["wms0031","start",item.docId],
@@ -31,6 +32,13 @@ const RenderItem = ({item,callback}:RenderItemProps)=>{
     onSuccess: () => {
       ToastAndroid.show("领取成功",ToastAndroid.SHORT);
       callback();
+      router.navigate({
+        pathname:"/wms0031/[docId]",
+        params:{
+          docId:item.docId
+        }
+      })
+      
     }
   })
   const cancelMutation = useMutation({
@@ -49,6 +57,9 @@ const RenderItem = ({item,callback}:RenderItemProps)=>{
     onSuccess: () => {
       ToastAndroid.show("取消成功",ToastAndroid.SHORT);
       callback();
+    },
+    onError: (error) => {
+      ToastAndroid.show("取消失败",ToastAndroid.SHORT);
     }
   })
   const onPress=(e:GestureResponderEvent)=>{
@@ -107,19 +118,21 @@ const RenderItem = ({item,callback}:RenderItemProps)=>{
       </View>
     </Pressable>
   )
-}
+})
 
 export default function App() {
-  
+  const isFocused = useIsFocused() 
   const [activeKey,setActiveKey] = useState("1");
+  const deferActiveKey = useDeferredValue(activeKey)
   const {data,refetch,isLoading} = useQuery({
-    queryKey: ['wms0031',activeKey],
+    queryKey: ['wms0031',deferActiveKey,isFocused],
+    refetchOnWindowFocus: false,
     queryFn: ()=>{
       return queryListFetch<any,any>({
         functionCode:"wms0031",
         prefix:"wms",
         data:{
-          docStatusList:[activeKey],
+          docStatusList:[deferActiveKey],
           page:1,
           size:100,
           orderBy:[
@@ -132,7 +145,7 @@ export default function App() {
       })
     }
   })
-
+  
   useEnum({
     params:["Mdm0020","wms003101DocSourceType","wms003101DocPriority"]
   })

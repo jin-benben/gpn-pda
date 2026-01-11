@@ -4,8 +4,9 @@ import {
   FormikCheckbox,
   FormikLocationModal,
   FormikLocationPicker,
-  FormikTextInput
+  FormikTextInput,
 } from "@/components/FormItem";
+import { toastConfig } from "@/components/ToastConfig";
 import PageIndicator from "@/components/ui/PageIndicator";
 import theme from "@/const/theme";
 import useEnum from "@/hooks/useEnum";
@@ -23,10 +24,10 @@ import {
   RefreshControl,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
-
 
 export default function Wms0007Screen() {
   const router = useRouter();
@@ -52,7 +53,8 @@ export default function Wms0007Screen() {
     refetch,
   } = useQuery({
     queryKey: ["wms0007", local.docNo],
-    select: (res: any) =>res.wms000702NewList,
+    select: (res: any) => res.wms000702NewList,
+    staleTime: Infinity,
     queryFn: () => {
       return commonRequestFetch({
         functionCode: "wms0006",
@@ -66,35 +68,26 @@ export default function Wms0007Screen() {
     },
   });
 
-  const lastList = useMemo(()=>{
-    if(wms000702NewList?.length && enumQueryRes.data){
-      const whsCode =  wms000702NewList[0]?.whsCode;
-      const whsRowData = enumQueryRes.data.Mdm0020?.find((a)=>a.value === whsCode)?.extend;
-      return wms000702NewList.map((a:any)=>{
+  const lastList = useMemo(() => {
+    if (wms000702NewList?.length && enumQueryRes.data) {
+      const whsCode = wms000702NewList[0]?.whsCode;
+      const whsRowData = enumQueryRes.data.Mdm0020?.find(
+        (a) => a.value === whsCode
+      )?.extend;
+      return wms000702NewList.map((a: any) => {
         return {
           ...a,
-          temporaryReceivingLocationName: whsRowData?.temporaryReceivingLocationName,
+          temporaryReceivingLocationName:
+            whsRowData?.temporaryReceivingLocationName,
           temporaryShippingLocation: whsRowData?.temporaryShippingLocation,
           receiverLocation: whsRowData?.temporaryShippingLocation,
           receiverLocationName: whsRowData?.temporaryReceivingLocationName,
           quantity: a.openReceiverQuantity,
-        }
-      })
-      
+        };
+      });
     }
-    return []
-   
-    
-  },[enumQueryRes.data,wms000702NewList])
-  
-
-  useEffect(() => {
-    if (status === "success" && !wms000702NewList) {
-      Alert.alert("提示", "已全部收货", [
-        { text: "确定", onPress: () => router.back() },
-      ]);
-    }
-  }, [status, wms000702NewList]);
+    return [];
+  }, [enumQueryRes.data, wms000702NewList]);
 
   // 创建收货单
   const { mutateAsync, isPending: isAddLoading } = useMutation({
@@ -106,30 +99,44 @@ export default function Wms0007Screen() {
         data,
       });
     },
-    onSuccess: (data,variables) => {
-      console.log("data", variables);
+    onSuccess: (res, variables) => {
+      refetch()
       Toast.show({
-        type: "success",
+        type: "default",
         text1: "收货成功",
-        topOffset: 0,
-        onHide:refetch,
       });
+      if (variables.directConfirm == 1) {
+        commonRequestFetch({
+          functionCode: "wms0007",
+          prefix: "wms",
+          url: "/confirm",
+          data: {
+            docId: res.docId,
+          },
+        }).catch((err) =>{
+          Toast.show({
+            type: "default",
+            text1: err.message,
+          });
+        });
+      }
     },
     onError: (err) => {
       Toast.show({
-        type: "error",
-        text1: "收货失败",
-        text2: err.message,
-        topOffset: 0,
+        type: "default",
+        text1: err.message,
       });
     },
   });
 
   // 删除行
-  const deleteLine = (index: number,props:FormikProps<any>) => {
-    props.setFieldValue("list", props.values.list.filter((a: any,bIndex:number) => bIndex !== index));
+  const deleteLine = (index: number, props: FormikProps<any>) => {
+    props.setFieldValue(
+      "list",
+      props.values.list.filter((a: any, bIndex: number) => bIndex !== index)
+    );
   };
-  
+
   // 打开库位选择器
   const onOpenModal = (index: number) => {
     setLineData({
@@ -138,8 +145,6 @@ export default function Wms0007Screen() {
     });
     setVisible(true);
   };
-
-
 
   const onSubmit = (value: any) => {
     // 数据处理
@@ -221,169 +226,177 @@ export default function Wms0007Screen() {
     return mutateAsync(wms000701);
   };
 
-  if (isFetching || lastList.length === 0 ) {
+  if (isFetching || lastList.length === 0) {
     return <PageIndicator />;
   }
 
   return (
-    <Formik
-      initialValues={{
-        list: lastList,
-        directConfirm: true,
-        receiverMode: "1",
-      }}
-      onSubmit={onSubmit}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={"translate-with-padding"}
+      keyboardVerticalOffset={80}
     >
-      {(props) => (
-        <View className="bg-white px-2 flex-1">
-          <FlatList
-            refreshControl={
-              <RefreshControl refreshing={isFetching} onRefresh={refetch} />
-            }
-            ListHeaderComponent={
-              <>
-                <View className="flex-row justify-between">
-                  <View className="flex-row">
+      <Formik
+        initialValues={{
+          list: lastList,
+          directConfirm: 1,
+          receiverMode: "1",
+        }}
+        onSubmit={onSubmit}
+      >
+        {(props) => (
+          <View className="bg-white px-2 flex-1">
+            <FlatList
+              refreshControl={
+                <RefreshControl refreshing={isFetching} onRefresh={refetch} />
+              }
+              ListHeaderComponent={
+                <>
+                  <View className="flex-row justify-between">
+                    <View className="flex-row">
+                      <EnumLabel
+                        enumKey="wms000601BaseDocType"
+                        value={lastList?.[0].baseDocType}
+                      />
+                      <Text>：{lastList?.[0].baseDocNo}</Text>
+                    </View>
                     <EnumLabel
-                      enumKey="wms000601BaseDocType"
-                      value={lastList?.[0].baseDocType}
+                      enumKey="Mdm0020"
+                      value={lastList?.[0].whsCode}
                     />
-                    <Text>：{lastList?.[0].baseDocNo}</Text>
                   </View>
-                  <EnumLabel
-                    enumKey="Mdm0020"
-                    value={lastList?.[0].whsCode}
-                  />
-                </View>
-                <View className="flex-row">
-                  <Text>送货方：</Text>
-                  <EnumLabel
-                    enumKey="wms0006DeliveryOrganizationType"
-                    value={lastList?.[0].deliveryOrganizationType}
-                  />
-                  <Text>{lastList?.[0].deliveryOrganizationName}</Text>
-                </View>
-                <ReceiverModeItem />
-              </>
-            }
-            data={props.values.list}
-            renderItem={({ item, index }) => (
-              <View className="border border-gray-300 mb-2 rounded p-2 gap-1">
-                <Text>({item.itemCode}) {item.itemName}</Text>
-                <View className="flex-row mb-2 items-center">
-                  <Text>库 位：</Text>
-                  <FormikLocationPicker
-                    name={`list.${index}.receiverLocationName]`}
-                    codeName={`list.${index}.receiverLocation`}
-                    onOpenModal={() => onOpenModal(index)}
-                    whsCode={item.whsCode}
-                  />
-                </View>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center">
-                    <Text>收/未收：</Text>
-                    <FormikTextInput
-                      inputMode="numeric"
-                      className="border border-gray-300 w-20 h-9 mr-2 rounded p-0 px-2"
-                      name={`list.${index}.quantity]`}
+                  <View className="flex-row">
+                    <Text>送货方：</Text>
+                    <EnumLabel
+                      enumKey="wms0006DeliveryOrganizationType"
+                      value={lastList?.[0].deliveryOrganizationType}
                     />
-                    <Text>
-                      {item.openReceiverQuantity}/{item.unit}
-                    </Text>
+                    <Text>{lastList?.[0].deliveryOrganizationName}</Text>
                   </View>
-                  <TouchableOpacity
-                    className="rounded-full h-10 w-10 items-center justify-center bg-red-100"
-                    onPress={() => deleteLine(index,props)}
-                  >
-                    <MaterialIcons
-                      name="delete-outline"
-                      size={20}
-                      color={theme.error}
+                  <ReceiverModeItem />
+                </>
+              }
+              data={props.values.list}
+              renderItem={({ item, index }) => (
+                <View className="border border-gray-300 mb-2 rounded p-2 gap-1">
+                  <Text>
+                    ({item.itemCode}) {item.itemName}
+                  </Text>
+                  <View className="flex-row mb-2 items-center">
+                    <Text>库 位：</Text>
+                    <FormikLocationPicker
+                      name={`list.${index}.receiverLocationName]`}
+                      codeName={`list.${index}.receiverLocation`}
+                      onOpenModal={() => onOpenModal(index)}
+                      whsCode={item.whsCode}
                     />
-                  </TouchableOpacity>
+                  </View>
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center">
+                      <Text>收/未收：</Text>
+                      <FormikTextInput
+                        inputMode="numeric"
+                        className="border border-gray-300 w-20 h-9 mr-2 rounded p-0 px-2"
+                        name={`list.${index}.quantity]`}
+                      />
+                      <Text>
+                        {item.openReceiverQuantity}/{item.unit}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      className="rounded-full h-10 w-10 items-center justify-center bg-red-100"
+                      onPress={() => deleteLine(index, props)}
+                    >
+                      <MaterialIcons
+                        name="delete-outline"
+                        size={20}
+                        color={theme.error}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            )}
-          />
-
-          <View className="flex-row">
-            <FormikCheckbox label="直接确认" name="directConfirm" />
-            <TouchableOpacity
-              disabled={props.isSubmitting}
-              onPress={() => props.handleSubmit()}
-              className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
-            >
-              {props.isSubmitting && (
-                <ActivityIndicator animating={true} color={"#fff"} />
               )}
-              <Text className="text-white text-lg">
-                {props.values.receiverMode == "1" ? "收货" : "上架"}
-              </Text>
-            </TouchableOpacity>
+            />
+
+            <View className="flex-row">
+              <FormikCheckbox label="直接确认" name="directConfirm" />
+              <TouchableOpacity
+                disabled={props.isSubmitting}
+                onPress={() => props.handleSubmit()}
+                className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
+              >
+                {props.isSubmitting && (
+                  <ActivityIndicator animating={true} color={"#fff"} />
+                )}
+                <Text className="text-white text-lg">
+                  {props.values.receiverMode == "1" ? "收货" : "上架"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FormikLocationModal
+              name={`list.${lineData.index}.receiverLocationName]`}
+              codeName={`list.${lineData.index}.receiverLocation`}
+              visible={visible}
+              onClose={() => setVisible(false)}
+              whsCode={lineData.whsCode}
+              areaType={props.values.receiverMode == "1" ? [2] : [1, 3, 9, 6, 99]}
+            />
+            <Toast config={toastConfig}/>
           </View>
-          <FormikLocationModal
-            name={`list.${lineData.index}.receiverLocationName]`}
-            codeName={`list.${lineData.index}.receiverLocation`}
-            visible={visible}
-            onClose={() => setVisible(false)}
-            whsCode={lineData.whsCode}
-            areaType={props.values.receiverMode == "1" ? [2] : [1, 3]}
-          />
-          <Toast />
-        </View>
-      )}
-    </Formik>
+        )}
+      </Formik>
+    </KeyboardAvoidingView>
   );
 }
 
-const ReceiverModeItem=()=>{
+const ReceiverModeItem = () => {
   const [field, meta, helpers] = useField("receiverMode");
   const formik = useFormikContext<any>();
-  
-  const onChange=(v:any)=>{
+
+  const onChange = (v: any) => {
     helpers.setValue(v);
-    if(v == "2"){
+    if (v == "2") {
       commonRequestFetch<any, any>({
         functionCode: "wms0008",
         prefix: "wms",
         url: "/selectHistoryLocationPda",
         data: {
-          itemCodeWhs: formik.values.list.map((d:any) => ({
+          itemCodeWhs: formik.values.list.map((d: any) => ({
             itemCode: d.itemCode,
             whsCode: d.whsCode,
-            inventoryOrganization:d.inventoryOrganization
+            inventoryOrganization: d.inventoryOrganization,
           })),
         },
-      }).then(res=>{ 
-         const newList = formik.values.list.map((a:any)=>{
-          const last = res.itemCodeWhsLocation.find((d:any)=>d.itemCode===a.itemCode && d.whsCode===a.whsCode)
+      }).then((res) => {
+        const newList = formik.values.list.map((a: any) => {
+          const last = res.itemCodeWhsLocation.find(
+            (d: any) => d.itemCode === a.itemCode && d.whsCode === a.whsCode
+          );
           return {
             ...a,
-            receiverLocation:last?.putawayLocation,
-            receiverLocationName:last?.putawayLocationName,
-          }
-         })
-         formik.setFieldValue("list",newList)
-      })
-    }else{
-      const newList = formik.values.list.map((a:any)=>{
+            receiverLocation: last?.putawayLocation,
+            receiverLocationName: last?.putawayLocationName,
+          };
+        });
+        formik.setFieldValue("list", newList);
+      });
+    } else {
+      const newList = formik.values.list.map((a: any) => {
         return {
           ...a,
-          receiverLocation:a.temporaryReceivingLocation,
-          receiverLocationName:a.temporaryReceivingLocationName,
-        }
-       })
-       formik.setFieldValue("list",newList)
+          receiverLocation: a.temporaryReceivingLocation,
+          receiverLocationName: a.temporaryReceivingLocationName,
+        };
+      });
+      formik.setFieldValue("list", newList);
     }
-    
-  }
+  };
   return (
     <EnumSelect
       value={field.value}
       onChange={onChange}
       className="flex-1"
       enumKey="wms000701ReceiverMode"
-      
     />
-  ) 
-}
+  );
+};

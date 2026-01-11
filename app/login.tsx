@@ -18,6 +18,8 @@ import { FormikTextInput } from "@/components/FormItem";
 import theme from "@/const/theme";
 import { Formik } from "formik";
 import { useEffect } from "react";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/components/ToastConfig";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -37,6 +39,10 @@ export default function LoginScreen() {
       })
       .catch((err) => {
         console.log(err, "登录失败");
+        Toast.show({
+          type: "default",
+          text1: err.message,
+        });
       });
   };
 
@@ -72,6 +78,7 @@ export default function LoginScreen() {
             )}
             <Text style={styles.buttonText}>登录</Text>
           </TouchableOpacity>
+          <Toast config={toastConfig} />
         </View>
       )}
     </Formik>

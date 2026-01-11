@@ -5,6 +5,8 @@ import {
   FormikLocationPicker,
   FormikTextInput,
 } from "@/components/FormItem";
+import Swipeable from "@/components/Swipeable";
+import { toastConfig } from "@/components/ToastConfig";
 import Empty from "@/components/ui/Empty";
 import PageIndicator from "@/components/ui/PageIndicator";
 import Popup from "@/components/ui/Popup";
@@ -29,6 +31,8 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import Reanimated,{ useAnimatedStyle } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
 
 interface EditRenderItemProps extends ListRenderItemInfo<any> {
@@ -44,41 +48,57 @@ const EditRenderItem = ({
   openLocationPopup,
 }: EditRenderItemProps) => {
   return (
-    <View className="border border-gray-300 mb-2 rounded p-2 gap-1">
-      <Text className="flex-1">
-        ({item.itemCode}) {item.itemName}
-      </Text>
-      <View className="flex-row items-center">
-        <Text>拣货库位：</Text>
-        <FormikLocationPicker
-          name={`location.${index}.locationName]`}
-          codeName={`location.${index}.locationName]`}
-          whsCode={whsCode}
-          onOpenModal={() =>
-            openLocationPopup({
-              rowData: item,
-              index,
-              locationPopupVisible: true,
-            })
-          }
+    <Swipeable 
+      renderRightActions={(prog, drag) => {
+        const styleAnimation = useAnimatedStyle(() => {
+          return {
+            transform: [{ translateX: drag.value + 120 }],
+            width: 120,
+            gap: 10,
+            flexDirection: "row",
+          };
+        });
+        return (
+          <Reanimated.View style={styleAnimation}>
+            <TouchableOpacity
+              onPress={() =>
+                opentargetPopup({ rowData: item, index, targetPopupVisible: true })
+              }
+              className="items-center justify-center p-4 rounded-sm bg-blue-500"
+            >
+              <Text className=" text-white">选择库位</Text>
+            </TouchableOpacity>
+          </Reanimated.View>
+        );
+      }}
+    >
+      <View className="border border-gray-300 rounded p-2 gap-1 mb-2">
+        <Text>
+          ({item.itemCode}) {item.itemName}
+        </Text>
+        <View className="flex-row items-center">
+          <Text>拣货库位：</Text>
+          <FormikLocationPicker
+            name={`location.${index}.locationName]`}
+            codeName={`location.${index}.locationName]`}
+            whsCode={whsCode}
+            onOpenModal={() =>
+              openLocationPopup({
+                rowData: item,
+                index,
+                locationPopupVisible: true,
+              })
+            }
         />
-
         <Text className="ml-1">
           {item.openQuantity} / {item.unit}
         </Text>
-        <TouchableOpacity
-          onPress={() =>
-            opentargetPopup({ rowData: item, index, targetPopupVisible: true })
-          }
-          className="ml-2"
-        >
-          <Text className="text-blue-500">选择库位</Text>
-        </TouchableOpacity>
       </View>
-      {item.wms003103.map((a: any, subIndex: number) => (
+      {item.wms003103?.map((a: any, subIndex: number) => (
         <View className="flex-row items-center gap-1" key={a.lineId}>
           <FormikCheckbox
             labelStyle={{ fontSize: 14 }}
+            size={24}
             label="暂存库位:"
             name={`location.${index}.wms003103.${subIndex}.checked`}
           />
@@ -93,6 +113,7 @@ const EditRenderItem = ({
         </View>
       ))}
     </View>
+    </Swipeable>
   );
 };
 
@@ -187,6 +208,7 @@ export default function Wms0031Screen() {
           return {
             ...b,
             quantity: onHand,
+            checked:1
           };
         });
         return {
@@ -219,10 +241,16 @@ export default function Wms0031Screen() {
     },
     onSuccess: () => {
       Toast.show({
-        type: "success",
+        type: "default",
         text1: "领取成功",
-        topOffset: 0,
+        visibilityTime: 2000,
         onHide:refetch
+      });
+    },
+    onError: (error) => { 
+      Toast.show({
+        type: "default",
+        text1: error.message,
       });
     },
   });
@@ -242,12 +270,17 @@ export default function Wms0031Screen() {
       });
     },
     onSuccess: () => {
-      
       Toast.show({
-        type: "success",
+        type: "default",
         text1: "补货成功",
-        topOffset: 0,
+        visibilityTime: 2000,
         onHide:refetch
+      });
+    },
+    onError: (error) => { 
+      Toast.show({
+        type: "default",
+        text1: error.message,
       });
     },
   });
@@ -284,10 +317,9 @@ export default function Wms0031Screen() {
       });
       if (needConfirms.length == 0) {
         return Toast.show({
-          type: "info",
-          text1: "提示",
-          text2: "请选择暂存库位",
-          topOffset: 0,
+          type: "default",
+          text1: "请选择暂存库位",
+          visibilityTime: 2000,
         });
       }
       confirmMutation.mutate(needConfirms);
@@ -296,10 +328,16 @@ export default function Wms0031Screen() {
     return <PageIndicator />;
   }
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={"translate-with-padding"}
+      keyboardVerticalOffset={80}
+    >
     <Formik onSubmit={onSubmit} initialValues={{ location: waitHandleList }}>
       {(props) => (
         <View className="bg-white flex-1">
           <FlatList
+            keyboardShouldPersistTaps="handled"
             refreshControl={
               <RefreshControl refreshing={isFetching} onRefresh={refetch} />
             }
@@ -362,8 +400,11 @@ export default function Wms0031Screen() {
                       disabled={confirmMutation.isPending}
                       activeOpacity={0.7}
                       onPress={()=>props.handleSubmit()}
-                      className="w-2/3 bg-blue-600 h-12 items-center justify-center"
+                      className="w-2/3 bg-blue-600 h-12 items-center justify-center flex-row gap-2"
                     >
+                      {confirmMutation.isPending && (
+                        <ActivityIndicator animating={true} color={"#fff"} />
+                      )}
                       <Text className="text-white">确认补货</Text>
                     </TouchableOpacity>
                     <CancelPopup
@@ -399,10 +440,11 @@ export default function Wms0031Screen() {
               onClose={closeTargeLocationPopup}
             />
           </Popup>
-          <Toast />
+          <Toast config={toastConfig}/>
         </View>
       )}
     </Formik>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -506,14 +548,16 @@ const CancelPopup = ({
     },
     onSuccess: () => {
       setVisible(false);
+      callback();
       Toast.show({
-        type: "success",
-        text1: "提示",
-        text2: "取消成功",
-        topOffset: 0,
-        onHide() {
-          callback();
-        },
+        type: "default",
+        text1: "取消成功",
+      });
+    },
+    onError: (error) => { 
+      Toast.show({
+        type: "default",
+        text1: error.message,
       });
     },
   });
@@ -524,9 +568,8 @@ const CancelPopup = ({
   const handleCancel = () => {
     if (list.length == 0) {
       return Toast.show({
-        type: "error",
+        type: "default",
         text1: "取消的行不能为空",
-        topOffset: 0,
       });
     }
     cancelLineMutation.mutate(list.map((a: any) => a.lineId));
@@ -542,7 +585,7 @@ const CancelPopup = ({
       </TouchableOpacity>
       <Popup
         visible={visible}
-        title="取消补货"
+        title="手工完成"
         onClose={() => setVisible(false)}
         modalStyle={{ height: "60%" }}
       >
@@ -581,7 +624,7 @@ const CancelPopup = ({
           className=" bg-red-600 h-12 items-center justify-center"
           onPress={handleCancel}
         >
-          <Text className="text-white">取消</Text>
+          <Text className="text-white">确定</Text>
         </TouchableOpacity>
       </Popup>
     </>

@@ -1,5 +1,5 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import {
   Pressable,
   StyleProp,
@@ -47,11 +47,14 @@ export default function Checkbox({
   const [internalChecked, setInternalChecked] = useState<boolean>(
     defaultValue == checkedValue || value == checkedValue
   );
+  const [isTransition,startTransition] = useTransition()
   const toggle = () => {
     if (disabled) return;
     const next = !internalChecked;
     setInternalChecked(next);
-    onValueChange?.(next?checkedValue:unCheckedValue);
+    startTransition(()=>{
+      onValueChange?.(next?checkedValue:unCheckedValue);
+    })
   };
 
   return (

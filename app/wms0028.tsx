@@ -3,6 +3,7 @@ import {
   FormikLocationPicker,
   FormikTextInput,
 } from "@/components/FormItem";
+import { toastConfig } from "@/components/ToastConfig";
 import InputSearch from "@/components/ui/InputSearch";
 import PageIndicator from "@/components/ui/PageIndicator";
 import Popup from "@/components/ui/Popup";
@@ -18,7 +19,6 @@ import Toast from "react-native-toast-message";
 
 export default function Wms0028Screen() {
   const whsCode = getLocalUserInfo()?.whsCode;
-  const inputRef = useRef<TextInput>(null);
   const [visible, setVisible] = useState(false);
   const [visible1, setVisible1] = useState(false);
   const [wms002802, setWms002802] = useState<any>(null);
@@ -54,14 +54,13 @@ export default function Wms0028Screen() {
       setWms002802(null);
       if (res.locationInventoryInfo?.locationInventoryInfoList.length == 0) {
         Toast.show({
-          type: "error",
+          type: "default",
           text1: "当前库位暂无货品",
-          topOffset: 0,
         });
       }
       if (res.mdm0085Info?.onHandInfo.length == 0) {
         Toast.show({
-          type: "error",
+          type: "default",
           text1: "当前货品暂无库位",
           topOffset: 0,
         });
@@ -103,7 +102,8 @@ export default function Wms0028Screen() {
   const wms0028CreateMutation = useMutation({
     mutationKey: ["wms0028"],
     mutationFn: (wms002802: any) => {
-      const inventoryOrganization = wms002802.inventoryOrganization || getEnumStore("Mdm001901")?.[0]?.value
+      const inventoryOrganization = wms002802.inventoryOrganization || getEnumStore("Mdm001901")?.[0]?.value;
+      console.log(inventoryOrganization,wms002802);
       return addItemFetch({
         functionCode: "wms0028",
         prefix: "wms",
@@ -117,21 +117,14 @@ export default function Wms0028Screen() {
     onSuccess: () => {
       setWms002802(null);
       Toast.show({
-        type: "success",
+        type: "default",
         text1: "转移成功",
-        topOffset: 0,
       });
-      inputRef.current?.setNativeProps({
-        text: ""
-      });
-      inputRef.current?.focus();
     },
     onError: (error) => {
       Toast.show({
-        type: "error",
-        text1: "转移失败",
-        text2: error.message,
-        topOffset: 0,
+        type: "default",
+        text1: "转移失败"+error.message,
       });
     },
   });
@@ -143,7 +136,6 @@ export default function Wms0028Screen() {
     <View className="flex-1 bg-white p-2">
       <InputSearch
         placeholder="请扫描货品编码或库位条码"
-        ref={inputRef}
         onSearch={(v)=>selectInventoryPdaMutation.mutate(v)}
       />
       {
@@ -169,7 +161,9 @@ export default function Wms0028Screen() {
                   onOpenModal={() => setVisible(true)}
                   focus={toLocationFocus}
                   whsCode={whsCode!}
-                  onSubmit={()=>props.handleSubmit()}
+                  onSubmit={(row)=>{
+                    onSubmit(Object.assign({},props.values,Object.assign(props.values.wms002802,{toLocation:row.code,toLocationName:row.name})))
+                  }}
                 />
               </View>
               <View className="flex-row items-center mb-4">
@@ -182,7 +176,7 @@ export default function Wms0028Screen() {
               </View>
               <Button
                 title="确定"
-                disabled={props.isSubmitting}
+                disabled={wms0028CreateMutation.isPending}
                 onPress={() => {
                   setToLocationFocus(false);
                   props.handleSubmit();
@@ -205,7 +199,7 @@ export default function Wms0028Screen() {
       <Popup
         visible={visible1}
         onClose={() => setVisible1(false)}
-        modalStyle={{ height: "60%" }}
+        modalStyle={{ height: "60%",padding:6 }}
         title="选择货品"
       >
         <FlatList
@@ -227,7 +221,7 @@ export default function Wms0028Screen() {
           )}
         />  
       </Popup>
-      <Toast />
+      <Toast config={toastConfig}/>
     </View>
   );
 }

@@ -1,3 +1,4 @@
+import { toastConfig } from '@/components/ToastConfig';
 import InputSearch from '@/components/ui/InputSearch';
 import PageIndicator from '@/components/ui/PageIndicator';
 import { queryOneFetch } from '@/lib/commonServices';
@@ -6,10 +7,11 @@ import { useIsFocused } from '@react-navigation/native';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 export default function Wms0007Screen() {
-  const inputRef = useRef<TextInput>(null);
   const router = useRouter();
+  
   const isFocused = useIsFocused();
   const [docNo,setDocNo] = useState("");
   const {mutate,data,isPending} = useMutation({
@@ -25,44 +27,53 @@ export default function Wms0007Screen() {
     },
     onSuccess: (data) => {
       if(data){
-        router.navigate({
-          pathname:"/wms0007/[docNo]",
-          params:{
-            docNo:data.docNo
-          },
-        });
-        setDocNo("");
+        if(data.docStatus == 3){
+          Toast.show({
+            type: "default",
+            text1: "该单据已全部收货",
+          });
+         
+        }else if(data.docStatus == 99){
+          Toast.show({
+            type: "default",
+            text1: "该单据已取消",
+          });
+        }else {
+          router.navigate({
+            pathname:"/wms0007/[docNo]",
+            params:{
+              docNo:data.docNo
+            },
+          });
+          setDocNo("");
+        }
+        
       }else{
-        Alert.alert("收货申请单不存在","",[{text: '确定',onPress:()=>inputRef.current?.focus()}])
+        Toast.show({
+          type: "default",
+          text1: "收货申请单不存在",
+        });
       }
     }
   })
   const handleSearch = (searchText: string) => {
     mutate(searchText)
   };
-  useEffect(() => {
-    if (isFocused) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    }
-  }, [isFocused]);
+  
   return (
     <>
       <View style={styles.container}>
         <View style={styles.headerWrapper}>
           <InputSearch 
-            ref={inputRef}
             placeholder="请输入或扫描收货申请单号" 
             onSearch={handleSearch}
             onChangeText={setDocNo}
             value={docNo}
             returnKeyType='search'
-            selectTextOnFocus
-            autoFocus
           />
         </View>
         {isPending && <PageIndicator />}
+        <Toast config={toastConfig} />
       </View>
     </>
   );

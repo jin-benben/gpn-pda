@@ -22,6 +22,7 @@ const LocationPicker = ({value,onChange,onOpenModal,whsCode,onSelect,focus}:Loca
   const inputRef = useRef<TextInput>(null);
   const onSubmitEditing = (e:TextInputSubmitEditingEvent)=>{
     const name = e.nativeEvent.text;
+    console.log(name,whsCode);
     if(!name || !whsCode){
       return
     }
@@ -53,7 +54,7 @@ const LocationPicker = ({value,onChange,onOpenModal,whsCode,onSelect,focus}:Loca
     <>
       <View className='flex-row border border-gray-300 rounded-md flex-1 items-center'>
         <TextInput ref={inputRef} value={value} onChangeText={onChange} onSubmitEditing={onSubmitEditing} className='flex-1 p-2' selectTextOnFocus placeholder='请选择库位'/>
-        <TouchableOpacity className='px-3' onPress={() => onOpenModal?.()}>
+        <TouchableOpacity className='pl-4 px-2 py-1' onPress={() => onOpenModal?.()}>
           <MaterialIcons name="search" size={20} color="gray" />
         </TouchableOpacity>
       </View>

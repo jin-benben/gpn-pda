@@ -1,24 +1,44 @@
 // components/InputSearch.tsx
 import theme from '@/const/theme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import React, { RefObject } from 'react';
+import React, { RefObject, use, useEffect, useImperativeHandle, useInsertionEffect, useRef } from 'react';
 import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
+
+export interface SearchInput extends Pick<TextInput,"focus"|"blur">{
+  
+}
 
 interface InputSearchProps extends TextInputProps {
   onSearch?: (text: string) => void;
-  ref?:RefObject<TextInput | null>;
+  ref?: RefObject<SearchInput | null>;
 }
 
 const InputSearch: React.FC<InputSearchProps> = ({ 
   onSearch, 
   onSubmitEditing,
+  ref,
   ...props 
 }) => {
-  
+  const inputRef = useRef<TextInput | null>(null);
   const handleSubmit = (e: any) => {
     onSubmitEditing?.(e);
     onSearch?.(e.nativeEvent.text);
   };
+ useImperativeHandle(ref, () => {
+  return {
+    focus: () => {
+      inputRef.current?.focus();
+    },
+    blur: () => {
+      inputRef.current?.blur();
+    }
+  }
+ },[inputRef]);
+  useEffect(() => {
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 1000);
+  }, [inputRef.current]);
 
   return (
     <View style={styles.container}>
@@ -30,6 +50,7 @@ const InputSearch: React.FC<InputSearchProps> = ({
         onSubmitEditing={handleSubmit}
         selectTextOnFocus
         {...props}
+        ref={inputRef}
       />
     </View>
   );
@@ -45,6 +66,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     width: "100%",
+    marginBottom: 10,
   },
   input: {
     flex: 1,

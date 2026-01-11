@@ -25,6 +25,7 @@ export type Prefix =
   | "aa2"
   | "prs2"
   | "smp"
+  | "smp2"
   | "aa7"
   | "pms"
   | "capi"
@@ -89,6 +90,8 @@ export const getPrefix = (prefix: Prefix) => {
       return "prs-second";
     case "smp":
       return "smp-first";
+    case "smp2":
+      return "smp-second";   
     case "wms":
       return "wms-first";
     case "tms":

@@ -14,6 +14,7 @@ export function FormikTextInput({ name,...props }:FormikTextInputProps) {
   return (
     <TextInput
       value={field.value?.toString()}
+      selectTextOnFocus
       onChangeText={(text) => helpers.setValue(text)}
       onBlur={() => helpers.setTouched(true)}
       {...props}
@@ -40,15 +41,16 @@ export function FormikCheckbox({ name,...props }:FormikCheckboxProps) {
 interface FormikLocationPickerProps extends LocationPickerProps{
   name: string;
   codeName:string;
-  onSubmit?:()=>void
+  onSubmit?:(r:LocationItem)=>void
 }
 export function FormikLocationPicker({ name,onSubmit,...props }:FormikLocationPickerProps) {
   const [field, meta, helpers] = useField(name);
   const formik = useFormikContext();
   const onSelect = (row:LocationItem) => {
     helpers.setValue(row.name);
-    formik.setFieldValue(props.codeName,row.code);
-    onSubmit?.();
+    formik.setFieldValue(props.codeName,row.code)
+    onSubmit?.(row);
+    
   };
   return (
     <LocationPicker

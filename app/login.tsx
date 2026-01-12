@@ -18,8 +18,6 @@ import { FormikTextInput } from "@/components/FormItem";
 import theme from "@/const/theme";
 import { Formik } from "formik";
 import { useEffect } from "react";
-import Toast from "react-native-toast-message";
-import { toastConfig } from "@/components/ToastConfig";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -32,18 +30,10 @@ export default function LoginScreen() {
       url: "/loginPwd",
       prefix: "jms-auth",
       data: v,
+    }).then((res) => {
+      setLocalUserInfo(res);
+      router.replace("/");
     })
-      .then((res) => {
-        setLocalUserInfo(res);
-        router.replace("/");
-      })
-      .catch((err) => {
-        console.log(err, "登录失败");
-        Toast.show({
-          type: "default",
-          text1: err.message,
-        });
-      });
   };
 
   return (
@@ -70,6 +60,7 @@ export default function LoginScreen() {
           </View>
           <TouchableOpacity
             disabled={props.isSubmitting}
+            activeOpacity={0.7}
             style={styles.submitBtn}
             onPress={() => props.handleSubmit()}
           >
@@ -78,7 +69,6 @@ export default function LoginScreen() {
             )}
             <Text style={styles.buttonText}>登录</Text>
           </TouchableOpacity>
-          <Toast config={toastConfig} />
         </View>
       )}
     </Formik>

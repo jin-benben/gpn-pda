@@ -14,6 +14,7 @@ export  const toastConfig: ToastConfig = {
         alignItems: "center",
         borderRadius: 10,
         gap: 6,
+        top: 80
       }}
     >
       <ActivityIndicator size="large" color="white" />
@@ -28,6 +29,7 @@ export  const toastConfig: ToastConfig = {
         zIndex: 9999,
         borderRadius: 10,
         marginHorizontal: 10,
+        top: 80
       }}
     >
       <Text className="text-white">{text1}</Text>

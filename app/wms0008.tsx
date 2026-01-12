@@ -5,23 +5,20 @@ import {
   FormikTextInput,
 } from "@/components/FormItem";
 import LocationModal, { LocationItem } from "@/components/LocationModal";
-import { toastConfig } from "@/components/ToastConfig";
 import InputSearch, { SearchInput } from "@/components/ui/InputSearch";
 import PageIndicator from "@/components/ui/PageIndicator";
 import { addItemFetch, commonRequestFetch } from "@/lib/commonServices";
 import { getLocalUserInfo } from "@/lib/util";
 import { useQuery } from "@tanstack/react-query";
 import { Formik, FormikConfig, FormikProps } from "formik";
-import React, { FC, memo, useRef, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   RefreshControl,
   Text,
   TouchableOpacity,
   View,
-  Platform,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
@@ -49,8 +46,8 @@ const RenderItem: FC<RenderItemProps> = memo(({ item, index, onOpenModal }) => {
         <Text>上架库位：</Text>
         <FormikLocationPicker
           whsCode={item.whsCode}
-          name={`list.${index}.putawayLocationName]`}
-          codeName={`list.${index}.putawayLocation]`}
+          name={`list.${index}.putawayLocationName`}
+          codeName={`list.${index}.putawayLocation`}
           onOpenModal={() => onOpenModal(index)}
         />
       </View>
@@ -66,7 +63,7 @@ const RenderItem: FC<RenderItemProps> = memo(({ item, index, onOpenModal }) => {
             {item.openPutawayQuantity}/{item.unit}
           </Text>
         </View>
-        <FormikCheckbox size={40} name={`list.[${index}].checked`} />
+        <FormikCheckbox size={40} name={`list.${index}.checked`} />
       </View>
     </View>
   );
@@ -94,6 +91,12 @@ export default function App() {
         },
       }),
   });
+
+  useEffect(() => {
+    if(selectWms0007Res.status=="success" && selectWms0007Res.data?.length==0){
+      inputRef.current?.focus();
+    }
+  }, [selectWms0007Res.status,selectWms0007Res.data]);
 
   const selectHistoryLocationPdaRes = useQuery({
     queryKey: ["selectHistoryLocationPda", selectWms0007Res.data],
@@ -180,7 +183,6 @@ export default function App() {
       },
     })
       .then((res) => {
-        console.log(directConfirm);
         if (directConfirm == 1) {
           commonRequestFetch({
             functionCode: "wms0008",
@@ -198,18 +200,8 @@ export default function App() {
                 topOffset: 0,
               });
             })
-            .catch((err) =>
-              Toast.show({
-                type: "default",
-                text1: err.message,
-              })
-            );
         }
       })
-      .catch((err) =>  Toast.show({
-        type: "default",
-        text1: err.message,
-      }));
   };
 
   const handleSearch = (code: string) => {
@@ -218,13 +210,13 @@ export default function App() {
   };
 
   // 打开库位选择器
-  const onOpenModal = (index: number) => {
+  const onOpenModal = useCallback((index: number) => {
     setLineData({
       whsCode: selectWms0007Res.data[index].whsCode,
       index,
     });
     setVisible(true);
-  };
+  }, []);
 
   // 库位选择器选择
   const handleLocationChange = (
@@ -239,34 +231,34 @@ export default function App() {
   const onSubmit: FormikConfig<any>["onSubmit"] = (value) =>
     hanlePushData(value);
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={"translate-with-padding"}
-      keyboardVerticalOffset={80}
-    >
-      <View className="p-2 bg-white flex-1">
-        <InputSearch
-          placeholder="请输入或扫描货品编码"
-          onSearch={handleSearch}
-          returnKeyType="search"
-          selectTextOnFocus
-          ref={inputRef}
-        />
-        {selectHistoryLocationPdaRes.isFetching ? (
-          <PageIndicator />
-        ) : (
-          <Formik
-            initialValues={{
-              list: selectHistoryLocationPdaRes.data,
-              directConfirm: 1,
-            }}
-            onSubmit={onSubmit}
-          >
-            {(props) => {
-              return (
-                <>
+    <View className="p-2 bg-white flex-1">
+      <InputSearch
+        placeholder="请输入或 扫描货品编码"
+        onSearch={handleSearch}
+        returnKeyType="search"
+        selectTextOnFocus
+        ref={inputRef}
+      />
+      {selectHistoryLocationPdaRes.isLoading ? (
+        <PageIndicator />
+      ) : (
+        <Formik
+          initialValues={{
+            list: selectHistoryLocationPdaRes.data,
+            directConfirm: 1,
+          }}
+          onSubmit={onSubmit}
+        >
+          {(props) => {
+            return (
+              <View className="flex-1">
+                <KeyboardAvoidingView
+                  style={{ flex: 1 }}
+                  behavior={"translate-with-padding"}
+                  keyboardVerticalOffset={140}
+                >
                   <FlatList
-                    data={selectHistoryLocationPdaRes.data}
+                    data={selectHistoryLocationPdaRes.data as any[]}
                     keyboardShouldPersistTaps="handled"
                     ListEmptyComponent={
                       <View className="flex justify-center items-center  h-20 ">
@@ -288,35 +280,43 @@ export default function App() {
                       />
                     )}
                   />
-                  <View className="flex-row">
-                    <FormikCheckbox name="directConfirm" label="直接确认" />
-                    <TouchableOpacity
-                      disabled={props.isSubmitting}
-                      onPress={() => props.handleSubmit()}
-                      className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
-                    >
-                      {props.isSubmitting && (
-                        <ActivityIndicator animating={true} color={"#fff"} />
-                      )}
-                      <Text className="text-white text-lg">上架</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <LocationModal
-                    visible={visible}
-                    onClose={() => setVisible(false)}
-                    onChange={(v) =>
-                      handleLocationChange(v, lineData.index, props)
-                    }
-                    whsCode={lineData?.whsCode}
-                    areaType={[1, 3, 9, 6, 99]}
-                  />
-                </>
-              );
-            }}
-          </Formik>
-        )}
-        <Toast config={toastConfig}/>
-      </View>
-    </KeyboardAvoidingView>
+                </KeyboardAvoidingView>
+
+                {selectWms0007Res.status == "success" &&
+                  selectWms0007Res.data?.length > 0 && (
+                    <>
+                      <View className="flex-row">
+                        <FormikCheckbox name="directConfirm" label="直接确认" />
+                        <TouchableOpacity
+                          disabled={props.isSubmitting}
+                          onPress={() => props.handleSubmit()}
+                          className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
+                        >
+                          {props.isSubmitting && (
+                            <ActivityIndicator
+                              animating={true}
+                              color={"#fff"}
+                            />
+                          )}
+                          <Text className="text-white text-lg">上架</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <LocationModal
+                        visible={visible}
+                        onClose={() => setVisible(false)}
+                        onChange={(v) =>
+                          handleLocationChange(v, lineData.index, props)
+                        }
+                        whsCode={lineData?.whsCode}
+                        areaType={[1, 3, 9, 6, 99]}
+                      />
+                    </>
+                  )}
+              </View>
+            );
+          }}
+        </Formik>
+      )}
+    </View>
   );
 }

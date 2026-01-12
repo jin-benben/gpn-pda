@@ -49,7 +49,12 @@ export default function Wms0017Screen() {
   const [searchRes, setSearchRes] = useState<any>(null);
   const { data: enumData } = useEnum({
     params: [
-      "Mdm0020",
+      {
+        code:"Mdm0020",
+        filter: {
+          whsType: [1,2],
+        },
+      },
       "yesOrNo",
       {
         code: "Mdm001901",

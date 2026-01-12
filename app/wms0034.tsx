@@ -16,10 +16,9 @@ interface RenderItemProps extends ListRenderItemInfo<any>{
 }
 const RenderItem = memo(({item}:RenderItemProps)=>{
   const router = useRouter();
-
   const onPress=(e:GestureResponderEvent)=>{
     router.navigate({
-      pathname:"/wms0007/[docNo]",
+      pathname:`/wms0007`,
       params:{docNo:item.receiveOrderDocNo}
     })
   }
@@ -29,11 +28,8 @@ const RenderItem = memo(({item}:RenderItemProps)=>{
         <Text>单号：{item.docNo} </Text>
         <EnumLabel enumKey='wms0034DocType' value={item.docType}/>
       </View>
-      <View className="flex-row justify-between">
-        <Text>送货方：{item.deliveryOrganizationName}</Text>
-        <Text>处理方式：<EnumLabel enumKey='wms0034ProcessingMethod' value={item.processingMethod}/></Text>
-      </View>
-     
+      <Text>送货方：{item.deliveryOrganizationName}</Text>
+      <Text>处理方式：<EnumLabel enumKey='wms0034ProcessingMethod' value={item.processingMethod}/></Text>
       <View className="flex-row">
         <Text>备注：</Text>
         <Text className="flex-1">{item.comment}</Text>

@@ -7,13 +7,12 @@ import { commonRequestFetch } from '@/lib/commonServices';
 import { getLocalUserInfo } from '@/lib/util';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, FlatList, StyleSheet, View,Image, Pressable } from 'react-native';
 export default function CombinationScreen() {
   const [whsCode, setWhsCode] = useState<string>(
     getLocalUserInfo()?.whsCode || ""
   );
-  
   const [skuId,setSkuId] = useState("");
   useEnum({
     params: [
@@ -45,6 +44,12 @@ export default function CombinationScreen() {
       console.log(error);
     }
   })
+
+  useEffect(() => {
+    if(skuId && whsCode){
+      mutate(skuId)
+    }
+  }, [whsCode])
   const handleSearch = (searchText: string) => {
     mutate(searchText)
   };

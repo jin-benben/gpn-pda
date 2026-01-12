@@ -3,7 +3,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/components/ToastConfig";
 import "../global.css";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -28,10 +31,6 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ title: "工品牛" }} />
             <Stack.Screen name="login" options={{ title: "登录" }} />
             <Stack.Screen name="wms0007" options={{ title: "收货" }} />
-            <Stack.Screen
-              name="wms0007/[docNo]"
-              options={{ title: "新增收货单" }}
-            />
             <Stack.Screen name="wms0008" options={{ title: "上架" }} />
             <Stack.Screen name="wms0017" options={{ title: "库存查询" }} />
             <Stack.Screen name="wms0028" options={{ title: "快速移动" }} />
@@ -49,6 +48,7 @@ export default function RootLayout() {
               options={{ title: "组合装查询" }}
             />
           </Stack>
+          <Toast config={toastConfig} />
         </GestureHandlerRootView>
       </QueryClientProvider>
     </KeyboardProvider>

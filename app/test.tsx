@@ -1,16 +1,68 @@
-import { toastConfig } from '@/components/ToastConfig'
-import React from 'react'
-import { Button,View,Text, ActivityIndicator } from 'react-native'
-import Toast, { BaseToast, ErrorToast, ToastConfig, ToastConfigParams } from 'react-native-toast-message'
+import React from "react";
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
-const test = () => {
+export default function KeyboardAvoidingViewExample() {
   return (
-    <View>
-      <Button title='测试loading' onPress={() => Toast.show({type:'loading',text1:'测试',visibilityTime:2000})}></Button>
-      <Button title='测试default' onPress={() => Toast.show({type:'default',text1:'测很多字看事实大黑积极NIIT几iiii叽叽叽叽写一篇文章，天高云淡，望断南飞雁，屈指行程二万，不到长城非好汉，六盘上高峰，红旗漫卷西风，今日长缨在手，何时缚住苍龙试',visibilityTime:2000})}></Button>
-      <Toast config={toastConfig}/>
-    </View>
-  )
+    <KeyboardAvoidingView
+      behavior={"padding"}
+      keyboardVerticalOffset={200}
+      style={styles.content}
+    >
+      <View style={styles.inner}>
+        <Text style={styles.heading}>Header</Text>
+        <View>
+          <TextInput placeholder="Username" style={styles.textInput} />
+          <TextInput placeholder="Password" style={styles.textInput} />
+        </View>
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.text}>Submit</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
+  );
 }
 
-export default test
+const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+    maxHeight: 600,
+  },
+  heading: {
+    fontSize: 36,
+    marginBottom: 48,
+    fontWeight: "600",
+  },
+  inner: {
+    padding: 24,
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  textInput: {
+    height: 45,
+    borderColor: "#000000",
+    borderWidth: 1,
+    borderRadius: 10,
+    marginBottom: 36,
+    paddingLeft: 10,
+  },
+  button: {
+    marginTop: 12,
+    height: 45,
+    borderRadius: 10,
+    backgroundColor: "rgb(40, 64, 147)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  text: {
+    fontWeight: "500",
+    fontSize: 16,
+    color: "white",
+  },
+});

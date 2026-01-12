@@ -7,7 +7,12 @@ import { Image } from "expo-image";
 const menuOptions = [
   {
     url: './wms0007',
-    text: '收 货',
+    text: '常规收货',
+    icon:require("../assets/images/shouhuo.png")
+  },
+  {
+    url: './wms0007?baseDocType=ass0006',
+    text: '售后收货',
     icon:require("../assets/images/shouhuo.png")
   },
   {

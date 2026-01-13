@@ -1,8 +1,8 @@
 import UpdateManager from "@/components/UpdateManager";
 import { getLocalUserInfo } from "@/lib/util";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Link, Stack, router, useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Link, Stack } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 const menuOptions = [
   {
@@ -47,14 +47,7 @@ const menuOptions = [
   },
 ]
 export default function Index() {
-  const router = useRouter();
   const userInfo = getLocalUserInfo();
-  const gridItemPress = (item:any) => { 
-    console.log(item);
-    // router.navigate({
-    //   pathname:item.url,
-    // });
-  }
   return (
     <View style={styles.container}>
       <Stack.Screen options={{

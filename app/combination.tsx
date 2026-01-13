@@ -1,3 +1,4 @@
+import ClipboardText from '@/components/ClipboardText';
 import EnumSelect from '@/components/EnumSelect';
 import Empty from '@/components/ui/Empty';
 import InputSearch from '@/components/ui/InputSearch';
@@ -40,9 +41,6 @@ export default function CombinationScreen() {
     onSuccess: (data) => {
       
     },
-    onError: (error) => {
-      console.log(error);
-    }
   })
 
   useEffect(() => {
@@ -56,7 +54,7 @@ export default function CombinationScreen() {
   
   return (
     <>
-      <View>
+      <View className='flex-1'>
         <View style={styles.headerWrapper}>
           <EnumSelect enumKey="Mdm0020" value={whsCode} onChange={setWhsCode} />
           <InputSearch 
@@ -68,14 +66,13 @@ export default function CombinationScreen() {
             selectTextOnFocus
           />
         </View>
-        <View className='gap-2 p-2'>
+        <View className='gap-2 p-2 flex-1'>
         {
           isPending ? <PageIndicator /> : (
           <FlatList
             data={data?.mdm008501}
             ListEmptyComponent={<Empty />}
             keyExtractor={(item) => item.code}
-           
             renderItem={({item})=>(
               <Link href={`./wms0017?itemCode=${item.code}&whsCode=${whsCode}`} asChild > 
                 <Pressable className='flex-row bg-white mb-2 gap-1 p-2'>
@@ -85,7 +82,9 @@ export default function CombinationScreen() {
                   
                   <View className='flex-1'>
                     <Text>{item.name}</Text>
-                    <Text>货品编码：{item.code}</Text>
+                    <ClipboardText text={item.code}>
+                      <Text className='text-blue-600'>货品编码：{item.code}</Text>
+                    </ClipboardText>
                     <Text>单位：{item.unit}</Text>
                     <Text>重量（g）：{item.weight}</Text>
                     <Text>品牌：{item.brandName}</Text>

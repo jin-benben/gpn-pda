@@ -19,7 +19,10 @@ const RenderItem = memo(({item}:RenderItemProps)=>{
   const onPress=(e:GestureResponderEvent)=>{
     router.navigate({
       pathname:`/wms0007`,
-      params:{docNo:item.receiveOrderDocNo}
+      params:{
+        docNo:item.receiveOrderDocNo,
+        baseDocType:"ass0006"
+      }
     })
   }
   return (

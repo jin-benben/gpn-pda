@@ -121,12 +121,6 @@ export default function Wms0028Screen() {
         text1: "转移成功",
       });
     },
-    onError: (error) => {
-      Toast.show({
-        type: "default",
-        text1: "转移失败"+error.message,
-      });
-    },
   });
   
   const onSubmit = (values: any) => {
@@ -144,7 +138,7 @@ export default function Wms0028Screen() {
       {wms002802 && (
         <Formik initialValues={{ wms002802 }} onSubmit={onSubmit}>
           {(props) => (
-            <View className="gap-2 mt-2">
+            <View className="gap-2 mt-2 flex-1">
               <Text>
                 ({wms002802.itemCode}){wms002802.itemName}
               </Text>
@@ -221,7 +215,6 @@ export default function Wms0028Screen() {
           )}
         />  
       </Popup>
-      <Toast config={toastConfig}/>
     </View>
   );
 }

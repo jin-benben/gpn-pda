@@ -33,6 +33,7 @@ request.interceptors.response.use(
     Toast.show({
       type: "default",
       text1: response.data.message,
+      visibilityTime: 3000,
     });
     return Promise.reject(new Error(response.data.message));
   },
@@ -40,6 +41,7 @@ request.interceptors.response.use(
     Toast.show({
       type: "default",
       text1: error.message,
+      visibilityTime: 3000,
     });
     return Promise.reject(error);
   },

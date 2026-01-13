@@ -48,7 +48,7 @@ export default function RootLayout() {
               options={{ title: "组合装查询" }}
             />
           </Stack>
-          <Toast config={toastConfig} />
+          <Toast config={toastConfig} visibilityTime={2000}/>
         </GestureHandlerRootView>
       </QueryClientProvider>
     </KeyboardProvider>

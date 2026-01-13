@@ -31,7 +31,7 @@ interface RenderItemProps {
 
 const RenderItem: FC<RenderItemProps> = memo(({ item, index, onOpenModal }) => {
   return (
-    <View className="p-2 border border-gray-300 border-solid mb-2 rounded gap-1">
+    <View className="p-2 rounded gap-1 bg-white">
       <View className="flex-row">
         <Text className="font-bold">{index + 1}. </Text>
         <Text>{item.docTypeNameInfo}：</Text>
@@ -231,14 +231,16 @@ export default function App() {
   const onSubmit: FormikConfig<any>["onSubmit"] = (value) =>
     hanlePushData(value);
   return (
-    <View className="p-2 bg-white flex-1">
-      <InputSearch
-        placeholder="请输入或 扫描货品编码"
-        onSearch={handleSearch}
-        returnKeyType="search"
-        selectTextOnFocus
-        ref={inputRef}
-      />
+    <View className="flex-1">
+      <View className="p-2 bg-white">
+        <InputSearch
+          placeholder="请输入或 扫描货品编码"
+          onSearch={handleSearch}
+          returnKeyType="search"
+          selectTextOnFocus
+          ref={inputRef}
+        />
+      </View>
       {selectHistoryLocationPdaRes.isLoading ? (
         <PageIndicator />
       ) : (
@@ -251,7 +253,7 @@ export default function App() {
         >
           {(props) => {
             return (
-              <View className="flex-1">
+              <View className="flex-1 p-2">
                 <KeyboardAvoidingView
                   style={{ flex: 1 }}
                   behavior={"translate-with-padding"}
@@ -261,10 +263,14 @@ export default function App() {
                     data={selectHistoryLocationPdaRes.data as any[]}
                     keyboardShouldPersistTaps="handled"
                     ListEmptyComponent={
-                      <View className="flex justify-center items-center  h-20 ">
-                        <Text className="text-gray-500 ">暂无待上架货品</Text>
-                      </View>
+                      selectHistoryLocationPdaRes.status == "success" ? (
+                        <View className="flex justify-center items-center  h-20 ">
+                          <Text className="text-gray-500 ">暂无待上架货品</Text>
+                        </View>
+                      ):null
+                    
                     }
+                    contentContainerClassName="gap-2"
                     refreshControl={
                       <RefreshControl
                         refreshing={selectWms0007Res.isFetching}

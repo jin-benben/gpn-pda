@@ -142,7 +142,15 @@ export default function Wms0017Screen() {
           onSearch={(text: string) => selectInventoryPdaMutation.mutate(text)}
         />
        
-        {
+       
+      </View>
+      {
+        selectInventoryPdaMutation.isPending && (
+          <PageIndicator />
+        )
+      }
+      <ScrollView>
+      {
           // 库位
           searchRes?.locationInventoryInfo && (
             <View className="p-2">
@@ -212,13 +220,6 @@ export default function Wms0017Screen() {
             </Swipeable>
           )
         }
-      </View>
-      {
-        selectInventoryPdaMutation.isPending && (
-          <PageIndicator />
-        )
-      }
-      <ScrollView>
         {searchRes?.locationInventoryInfo && (
           <View>
             {searchRes?.locationInventoryInfo.locationInventoryInfoList.map(

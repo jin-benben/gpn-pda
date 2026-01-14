@@ -6,6 +6,7 @@ import {
   FormikCheckbox,
   FormikLocationModal,
 } from "@/components/FormItem";
+import RenderScrollComponent from "@/components/RenderScrollComponent";
 import { toastConfig } from "@/components/ToastConfig";
 import Empty from "@/components/ui/Empty";
 import InputSearch, { SearchInput } from "@/components/ui/InputSearch";
@@ -20,6 +21,7 @@ import {
 import "@/lib/request";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useIsFocused } from "@react-navigation/native";
+import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -207,146 +209,107 @@ export default function Wms0007Screen() {
     });
     setVisible(true);
   };
+ const onSubmit = (value: any) => {
+  // 使用 Set 进行去重，提高查找效率
+  const docTypeNameInfo = new Set<string>();
+  const trackingNumberInfo = new Set<string>();
+  const applicantNameInfo = new Set<string>();
+  const baseDocNoInfo = new Set<string>();
+  const comment = new Set<string>();
 
-  const onSubmit = (value: any) => {
-    let docTypeNameInfo: string[] = [];
-    let trackingNumberInfo: string[] = [];
-    let applicantNameInfo: string[] = [];
-    let baseDocNoInfo: string[] = [];
-    let comment: string[] = [];
-    const wms000702 = value.list.map((d: any) => {
-      if (!docTypeNameInfo.includes(d.docTypeNameInfo)) {
-        docTypeNameInfo.push(d.docTypeNameInfo);
-      }
-      if (!trackingNumberInfo.includes(d.trackingNumberInfo)) {
-        trackingNumberInfo.push(d.trackingNumberInfo);
-      }
-      if (!applicantNameInfo.includes(d.applicantNameInfo)) {
-        applicantNameInfo.push(d.applicantNameInfo);
-      }
-      if (!baseDocNoInfo.includes(d.baseDocNoInfo)) {
-        baseDocNoInfo.push(d.baseDocNoInfo);
-      }
-      if (!comment.includes(d.comment)) {
-        comment.push(d.comment);
-      }
-      return Object.assign(
-        {},
-        pick(d, [
-          "inventoryOrganization",
-          "receiveOrderDocId",
-          "receiveOrderDocNo",
-          "receiveOrderLineId",
-          "sourceDocType",
-          "sourceDocId",
-          "sourceDocNo",
-          "sourceLineId",
-          "baseDocType",
-          "baseDocId",
-          "baseDocNo",
-          "baseLineId",
-          "soDocId",
-          "soDocNo",
-          "soLineId",
-          "itemCode",
-          "itemName",
-          "unit",
-          "openReceiverQuantity",
-          "lineComment",
-          "whsCode",
-          "receiverLocation",
-          "receiverLocationName",
-          "quantity",
-        ])
-      );
-    });
+  const wms000702 = value.list.map((d: any) => {
+    // 使用 Set.add() 自动去重
+    docTypeNameInfo.add(d.docTypeNameInfo);
+    trackingNumberInfo.add(d.trackingNumberInfo);
+    applicantNameInfo.add(d.applicantNameInfo);
+    baseDocNoInfo.add(d.baseDocNoInfo);
+    comment.add(d.comment);
 
-    return mutateAsync(
-      Object.assign(wms000701Data, {
-        comment: comment.toString(),
-        docTypeNameInfo: docTypeNameInfo.toString(),
-        trackingNumberInfo: trackingNumberInfo.toString(),
-        applicantNameInfo: applicantNameInfo.toString(),
-        baseDocNoInfo: baseDocNoInfo.toString(),
-        wms000702,
-        receiverMode: value.receiverMode,
-        directConfirm: value.directConfirm,
-      })
+    return Object.assign(
+      {},
+      pick(d, [
+        "inventoryOrganization",
+        "receiveOrderDocId",
+        "receiveOrderDocNo",
+        "receiveOrderLineId",
+        "sourceDocType",
+        "sourceDocId",
+        "sourceDocNo",
+        "sourceLineId",
+        "baseDocType",
+        "baseDocId",
+        "baseDocNo",
+        "baseLineId",
+        "soDocId",
+        "soDocNo",
+        "soLineId",
+        "itemCode",
+        "itemName",
+        "unit",
+        "openReceiverQuantity",
+        "lineComment",
+        "whsCode",
+        "receiverLocation",
+        "receiverLocationName",
+        "quantity",
+      ])
     );
-  };
-
-  const wms0001CancelMutation = useMutation({
-    mutationKey: ["wms000701"],
-    mutationFn: (data: any) => {
-      return commonRequestFetch<any, any>({
-        functionCode: "wms0001",
-        prefix: "wms",
-        url: "/cancel",
-        data: {
-          docId: wms000101Data?.docId,
-        },
-      });
-    },
-    onSuccess: (res) => {
-      Toast.show({
-        type: "default",
-        text1: "取消成功",
-      });
-      onRefresh();
-    },
   });
-  const wms0001Cancel = () => {
-    Alert.alert("取消", "确定取消该发货单吗？", [
-      {
-        text: "取消",
-        style: "cancel",
-      },
-      {
-        text: "确定",
-        onPress: () => {
-          wms0001CancelMutation.mutate(wms000101Data?.docId);
-        },
-      },
-    ]);
-  };
 
-  const onSearch = (v:string)=>{
+  return mutateAsync(
+    Object.assign(wms000701Data, {
+      comment: Array.from(comment).join(','),
+      docTypeNameInfo: Array.from(docTypeNameInfo).join(','),
+      trackingNumberInfo: Array.from(trackingNumberInfo).join(','),
+      applicantNameInfo: Array.from(applicantNameInfo).join(','),
+      baseDocNoInfo: Array.from(baseDocNoInfo).join(','),
+      wms000702,
+      receiverMode: value.receiverMode,
+      directConfirm: value.directConfirm,
+    })
+  );
+};
+
+ 
+  const onSearch = (v: string) => {
     setWms000101Data(null);
-    selectByBaseDocAndLogisticsDocMutation.mutate(v)
-  }
+    selectByBaseDocAndLogisticsDocMutation.mutate(v);
+  };
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ title: local.baseDocType ? "售后收货" : "常规收货" }} />
-      <View style={styles.headerWrapper}>
-        <InputSearch
-          ref={inputRef}
-          placeholder="请输入或扫描收货申请单号"
-          onSearch={onSearch}
-          onChangeText={setSearchText}
-          value={searchText}
-          returnKeyType="search"
+    
+      <View style={styles.container}>
+        <Stack.Screen
+          options={{ title: local.baseDocType ? "售后收货" : "常规收货" }}
         />
-      </View>
-      {selectByBaseDocAndLogisticsDocMutation.isPending && <PageIndicator />}
-      {Boolean(lastList?.length) && (
-        <Formik
-          initialValues={{
-            list: lastList,
-            directConfirm: 1,
-            receiverMode: local.baseDocType ? "2" : "1",
-          }}
-          onSubmit={onSubmit}
-        >
-          {(props) => {
-            return (
-              <View className="bg-white px-2 flex-1">
-                <KeyboardAvoidingView
-                  style={{ flex: 1 }}
-                  behavior={"translate-with-padding"}
-                  keyboardVerticalOffset={150}
-                >
-                  <FlatList
+        <View style={styles.headerWrapper}>
+          <InputSearch
+            ref={inputRef}
+            placeholder="请输入或扫描收货申请单号"
+            onSearch={onSearch}
+            onChangeText={setSearchText}
+            value={searchText}
+            returnKeyType="search"
+          />
+        </View>
+
+        {selectByBaseDocAndLogisticsDocMutation.isPending && <PageIndicator />}
+
+        {Boolean(lastList?.length) && (
+          <Formik
+            initialValues={{
+              list: lastList,
+              directConfirm: 1,
+              receiverMode: local.baseDocType ? "2" : "1",
+            }}
+            onSubmit={onSubmit}
+            enableReinitialize
+          >
+            {(props) => {
+              return (
+                <View className="flex-1">
+                  <FlashList
+                    renderScrollComponent={RenderScrollComponent}
                     refreshControl={
                       <RefreshControl
                         refreshing={
@@ -356,7 +319,7 @@ export default function Wms0007Screen() {
                       />
                     }
                     ListHeaderComponent={
-                      <>
+                      <View className="bg-white px-2 mb-2">
                         <View className="flex-row justify-between">
                           <View className="flex-row">
                             <EnumLabel
@@ -370,20 +333,20 @@ export default function Wms0007Screen() {
                             value={wms000701Data?.whsCode}
                           />
                         </View>
-                        <View className="flex-row">
-                          <Text>送货方：</Text>
-                          <EnumLabel
-                            enumKey="wms0006DeliveryOrganizationType"
-                            value={wms000701Data?.deliveryOrganizationType}
-                          />
-                          <Text>{wms000701Data?.deliveryOrganizationName}</Text>
-                        </View>
+                        <Text>
+                            送货方类型：
+                            <EnumLabel
+                              enumKey="wms0006DeliveryOrganizationType"
+                              value={wms000701Data?.deliveryOrganizationType}
+                            />
+                        </Text>
+                        <Text>送货方：{wms000701Data?.deliveryOrganizationName}</Text>
                         <ReceiverModeItem />
-                      </>
+                      </View>
                     }
-                    data={props.values.list}
+                    data={lastList as any[]}
                     renderItem={({ item, index }) => (
-                      <View className="border border-gray-300 mb-2 rounded p-2 gap-1">
+                      <View className="bg-white mb-2 rounded p-2 gap-1 mx-2">
                         <Text>
                           ({item.itemCode}) {item.itemName}
                         </Text>
@@ -422,97 +385,48 @@ export default function Wms0007Screen() {
                       </View>
                     )}
                   />
-                </KeyboardAvoidingView>
-                <View className="flex-row">
-                  <FormikCheckbox label="直接确认" name="directConfirm" />
-                  <TouchableOpacity
-                    disabled={props.isSubmitting}
-                    onPress={() => props.handleSubmit()}
-                    className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
-                  >
-                    {props.isSubmitting && (
-                      <ActivityIndicator animating={true} color={"#fff"} />
-                    )}
-                    <Text className="text-white text-lg">
-                      {props.values.receiverMode == "1" ? "收货" : "上架"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <FormikLocationModal
-                  name={`list.${lineData.index}.receiverLocationName]`}
-                  codeName={`list.${lineData.index}.receiverLocation`}
-                  visible={visible}
-                  onClose={() => setVisible(false)}
-                  whsCode={wms000701Data?.whsCode}
-                  areaType={
-                    props.values.receiverMode == "1" ? [2] : [1, 3, 9, 6, 99]
-                  }
-                />
-              </View>
-            );
-          }}
-        </Formik>
-      )}
-
-      {wms000101Data && (
-        <View className="px-2 gap-2 flex-1">
-          <Text>发货单号：{wms000101Data?.docNo}</Text>
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={"translate-with-padding"}
-            keyboardVerticalOffset={120}
-          >
-            <FlatList
-              data={wms000101Data.wms000102}
-              keyExtractor={(item) => item.lineId}
-              ListEmptyComponent={<Empty />}
-              renderItem={({ item, index }) => (
-                <View className="border border-gray-300 rounded p-2">
-                  <View className="flex-row justify-between gap-2 items-center ">
-                    <Image
-                      style={{ width: 80, height: 80, borderRadius: 6 }}
-                      source={{ uri: item.imageOriginUrl }}
-                    />
-                    <View className="gap-1 flex-1">
-                      <Text>{item.skuName}</Text>
-                      <Text>skuId：{item.skuId}</Text>
-                      <Text>
-                        数量：{item.quantity}/{item.unit}
+                  <View className="flex-row">
+                    <FormikCheckbox label="直接确认" name="directConfirm" />
+                    <TouchableOpacity
+                      disabled={props.isSubmitting}
+                      onPress={() => props.handleSubmit()}
+                      className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
+                    >
+                      {props.isSubmitting && (
+                        <ActivityIndicator animating={true} color={"#fff"} />
+                      )}
+                      <Text className="text-white text-lg">
+                        {props.values.receiverMode == "1" ? "收货" : "上架"}
                       </Text>
-                    </View>
+                    </TouchableOpacity>
                   </View>
-                  <View className="bg-gray-100 gap-1">
-                    {item.wms000103.map((b: any) => (
-                      <View key={b.lineId} className="bg-white p-1 gap-1">
-                        <Text>{b.skuName}</Text>
-                        <Text>货品编码：{b.skuId}</Text>
-                        <Text>
-                          数量：{b.quantity}/{b.unit}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
+                  <FormikLocationModal
+                    name={`list.${lineData.index}.receiverLocationName]`}
+                    codeName={`list.${lineData.index}.receiverLocation`}
+                    visible={visible}
+                    onClose={() => setVisible(false)}
+                    whsCode={wms000701Data?.whsCode}
+                    areaType={
+                      props.values.receiverMode == "1" ? [2] : [1, 3, 9, 6, 99]
+                    }
+                  />
                 </View>
-              )}
-            />
-          </KeyboardAvoidingView>
-          <TouchableOpacity
-            className="bg-red-500 h-12 items-center justify-center"
-            activeOpacity={0.7}
-            onPress={wms0001Cancel}
-            disabled={wms0001CancelMutation.isPending}
-          >
-            <Text className="text-white text-lg">取消</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+              );
+            }}
+          </Formik>
+        )}
+
+        {
+          wms000101Data && (
+             <Wms0001List wms000101Data={wms000101Data} callback={onRefresh}/>
+          )
+        }
+      </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
     flex: 1,
   },
   headerWrapper: {
@@ -521,6 +435,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 });
+
 
 const ReceiverModeItem = () => {
   const [field, meta, helpers] = useField("receiverMode");
@@ -571,5 +486,97 @@ const ReceiverModeItem = () => {
       className="flex-1"
       enumKey="wms000701ReceiverMode"
     />
+  );
+};
+
+interface Wms0001ListItemProps {
+  wms000101Data:{
+    docId:string;
+    docNo:string;
+    wms000102:any[];
+  };
+  callback:()=>void;
+}
+const Wms0001List = ({callback,wms000101Data}:Wms0001ListItemProps) => {
+  const wms0001CancelMutation = useMutation({
+    mutationKey: ["wms000701"],
+    mutationFn: (data: any) => {
+      return commonRequestFetch<any, any>({
+        functionCode: "wms0001",
+        prefix: "wms",
+        url: "/cancel",
+        data: {
+          docId: wms000101Data?.docId,
+        },
+      });
+    },
+    onSuccess: (res) => {
+      Toast.show({
+        type: "default",
+        text1: "取消成功",
+      });
+      callback();
+    },
+  });
+  const wms0001Cancel = () => {
+    Alert.alert("取消", "确定取消该发货单吗？", [
+      {
+        text: "取消",
+        style: "cancel",
+      },
+      {
+        text: "确定",
+        onPress: () => {
+          wms0001CancelMutation.mutate(wms000101Data?.docId);
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View className="px-2 gap-2 flex-1">
+      <Text>发货单号：{wms000101Data.docNo}</Text>
+      <FlashList
+        data={wms000101Data.wms000102}
+        keyExtractor={(item) => item.lineId}
+        ListEmptyComponent={<Empty />}
+        renderItem={({ item, index }) => (
+          <View className="border border-gray-300 rounded p-2">
+            <View className="flex-row justify-between gap-2 items-center ">
+              <Image
+                style={{ width: 80, height: 80, borderRadius: 6 }}
+                source={{ uri: item.imageOriginUrl }}
+              />
+              <View className="gap-1 flex-1">
+                <Text>{item.skuName}</Text>
+                <Text>skuId：{item.skuId}</Text>
+                <Text>
+                  数量：{item.quantity}/{item.unit}
+                </Text>
+              </View>
+            </View>
+            <View className="bg-gray-100 gap-1">
+              {item.wms000103.map((b: any) => (
+                <View key={b.lineId} className="bg-white p-1 gap-1">
+                  <Text>{b.skuName}</Text>
+                  <Text>货品编码：{b.skuId}</Text>
+                  <Text>
+                    数量：{b.quantity}/{b.unit}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      />
+      <TouchableOpacity
+        className="bg-red-500 h-12 items-center justify-center"
+        activeOpacity={0.7}
+        onPress={wms0001Cancel}
+        disabled={wms0001CancelMutation.isPending}
+      >
+        <Text className="text-white text-lg">取消</Text>
+      </TouchableOpacity>
+    </View>
   );
 };

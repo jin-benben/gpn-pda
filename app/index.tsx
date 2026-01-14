@@ -1,8 +1,8 @@
 import UpdateManager from "@/components/UpdateManager";
 import { getLocalUserInfo } from "@/lib/util";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Link, Stack } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Link, Stack, router } from "expo-router";
+import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 const menuOptions = [
   {

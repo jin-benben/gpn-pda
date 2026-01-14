@@ -5,6 +5,7 @@ import {
   FormikLocationPicker,
   FormikTextInput,
 } from "@/components/FormItem";
+import RenderScrollComponent from "@/components/RenderScrollComponent";
 import Swipeable from "@/components/Swipeable";
 import { toastConfig } from "@/components/ToastConfig";
 import Empty from "@/components/ui/Empty";
@@ -18,6 +19,7 @@ import {
 } from "@/lib/commonServices";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { FlashList, ListRenderItemInfo, useMappingHelper } from "@shopify/flash-list";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Formik, useFormikContext } from "formik";
@@ -25,13 +27,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  ListRenderItemInfo,
   RefreshControl,
   Text,
   TouchableOpacity,
   View
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Reanimated,{ useAnimatedStyle } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
 
@@ -47,6 +47,7 @@ const EditRenderItem = ({
   opentargetPopup,
   openLocationPopup,
 }: EditRenderItemProps) => {
+  const { getMappingKey } = useMappingHelper();
   return (
     <Swipeable 
       renderRightActions={(prog, drag) => {
@@ -72,7 +73,7 @@ const EditRenderItem = ({
         );
       }}
     >
-      <View className="border border-gray-300 rounded p-2 gap-1 mb-2">
+      <View className="bg-white rounded p-2 gap-1 mt-2">
         <Text>
           ({item.itemCode}) {item.itemName}
         </Text>
@@ -95,7 +96,7 @@ const EditRenderItem = ({
         </Text>
       </View>
       {item.wms003103?.map((a: any, subIndex: number) => (
-        <View className="flex-row items-center gap-1" key={a.lineId}>
+        <View className="flex-row items-center gap-1" key={getMappingKey(a.lineId, subIndex)}>
           <FormikCheckbox
             labelStyle={{ fontSize: 14 }}
             size={24}
@@ -118,6 +119,7 @@ const EditRenderItem = ({
 };
 
 const RenderItem = ({ item, index }: ListRenderItemInfo<any>) => {
+  const { getMappingKey } = useMappingHelper();
   return (
     <View className="border border-gray-300 mb-2 rounded p-2 gap-1">
       <Text>
@@ -144,9 +146,9 @@ const RenderItem = ({ item, index }: ListRenderItemInfo<any>) => {
               <Text>库位</Text>
               <Text>补货数量</Text>
             </View>
-            {item.wms003105?.map((a: any) => (
+            {item.wms003105?.map((a: any,subIndex:number) => (
               <View
-                key={a.lineId}
+                key={getMappingKey(a.lineId, subIndex)}
                 className="flex-row justify-between p-2 border-b border-gray-100"
               >
                 <Text>{a.locationName}</Text>
@@ -328,21 +330,18 @@ export default function Wms0031Screen() {
     return <PageIndicator />;
   }
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={"translate-with-padding"}
-      keyboardVerticalOffset={80}
-    >
+    <>
     <Formik onSubmit={onSubmit} initialValues={{ location: waitHandleList }}>
       {(props) => (
-        <View className="bg-white flex-1">
-          <FlatList
+        <View className="flex-1">
+          <FlashList
+            renderScrollComponent={RenderScrollComponent}
             keyboardShouldPersistTaps="handled"
             refreshControl={
               <RefreshControl refreshing={isFetching} onRefresh={refetch} />
             }
             ListHeaderComponent={
-              <View className="gap-2 p-2">
+              <View className="gap-2 p-2 bg-white">
                 <View className="flex-row justify-between">
                   <Text>单号：{wms00031Data.docNo}</Text>
                   <EnumLabel
@@ -367,8 +366,7 @@ export default function Wms0031Screen() {
             }
             ListEmptyComponent={<Empty />}
             data={selectedIndex == 0 ? waitHandleList : successWms003102Data}
-            keyExtractor={(item) => item.lineId}
-            className="px-2"
+            keyExtractor={(item:any) => item.lineId}
             renderItem={(props) =>
               selectedIndex == 0 ? (
                 <EditRenderItem
@@ -444,7 +442,7 @@ export default function Wms0031Screen() {
         </View>
       )}
     </Formik>
-    </KeyboardAvoidingView>
+    </>
   );
 }
 

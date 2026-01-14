@@ -2,7 +2,8 @@ import theme from '@/const/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Clipboard from 'expo-clipboard';
 import React from 'react';
-import { Pressable, ToastAndroid } from 'react-native';
+import { Pressable } from 'react-native';
+import Toast from 'react-native-toast-message';
 interface ClipboardTextProps {
   text:string;
   icon?:React.ReactNode;
@@ -11,7 +12,10 @@ interface ClipboardTextProps {
 const ClipboardText = ({text,children}:ClipboardTextProps) => {
   const copyToClipboard = async () => {
     Clipboard.setStringAsync(text).then(() => {   
-       ToastAndroid.showWithGravity('复制成功',ToastAndroid.LONG,ToastAndroid.TOP)
+       Toast.show({
+        type: 'default',
+        text1: '复制成功',
+      });
     });
   };
   return (

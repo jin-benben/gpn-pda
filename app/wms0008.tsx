@@ -5,13 +5,22 @@ import {
   FormikTextInput,
 } from "@/components/FormItem";
 import LocationModal, { LocationItem } from "@/components/LocationModal";
+import RenderScrollComponent from "@/components/RenderScrollComponent";
 import InputSearch, { SearchInput } from "@/components/ui/InputSearch";
 import PageIndicator from "@/components/ui/PageIndicator";
 import { addItemFetch, commonRequestFetch } from "@/lib/commonServices";
 import { getLocalUserInfo } from "@/lib/util";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
 import { Formik, FormikConfig, FormikProps } from "formik";
-import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  FC,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -31,7 +40,7 @@ interface RenderItemProps {
 
 const RenderItem: FC<RenderItemProps> = memo(({ item, index, onOpenModal }) => {
   return (
-    <View className="p-2 rounded gap-1 bg-white">
+    <View className="p-2 rounded gap-1 bg-white mb-2">
       <View className="flex-row">
         <Text className="font-bold">{index + 1}. </Text>
         <Text>{item.docTypeNameInfo}：</Text>
@@ -93,10 +102,13 @@ export default function App() {
   });
 
   useEffect(() => {
-    if(selectWms0007Res.status=="success" && selectWms0007Res.data?.length==0){
+    if (
+      selectWms0007Res.status == "success" &&
+      selectWms0007Res.data?.length == 0
+    ) {
       inputRef.current?.focus();
     }
-  }, [selectWms0007Res.status,selectWms0007Res.data]);
+  }, [selectWms0007Res.status, selectWms0007Res.data]);
 
   const selectHistoryLocationPdaRes = useQuery({
     queryKey: ["selectHistoryLocationPda", selectWms0007Res.data],
@@ -130,79 +142,67 @@ export default function App() {
       }),
   });
 
-  const hanlePushData = ({
-    list,
-    directConfirm,
-  }: {
-    list: any[];
-    directConfirm: number;
-  }) => {
-    let applicantNameInfo: string[] = [];
-    let baseDocTypeInfo: string[] = [];
-    let docTypeNameInfo: string[] = [];
-    let receiveDocNoInfo: string[] = [];
-    let deliveryOrganizationNameInfo: string[] = [];
+  const hanlePushData = ({list,directConfirm,}: {list: any[];directConfirm: number;}) => {
+    // 使用 Set 进行去重，提高查找效率
+    const applicantNameInfo = new Set<string>();
+    const baseDocTypeInfo = new Set<string>();
+    const docTypeNameInfo = new Set<string>();
+    const receiveDocNoInfo = new Set<string>();
+    const deliveryOrganizationNameInfo = new Set<string>();
+    
     let whsCode = "";
     let inventoryOrganization = "";
+  
     const wms000802 = list
       .filter((d) => d.checked == 1)
       .map((d) => {
         whsCode = d.whsCode;
         inventoryOrganization = d.inventoryOrganization;
-        if (!docTypeNameInfo.includes(d.docTypeNameInfo)) {
-          docTypeNameInfo.push(d.docTypeNameInfo);
-        }
-        if (!applicantNameInfo.includes(d.applicantNameInfo)) {
-          applicantNameInfo.push(d.applicantNameInfo);
-        }
-        if (!baseDocTypeInfo.includes(d.baseDocTypeInfo)) {
-          baseDocTypeInfo.push(d.baseDocTypeInfo);
-        }
-        if (!receiveDocNoInfo.includes(d.receiveDocNo)) {
-          receiveDocNoInfo.push(d.receiveDocNo);
-        }
-        if (
-          !deliveryOrganizationNameInfo.includes(d.deliveryOrganizationNameInfo)
-        ) {
-          deliveryOrganizationNameInfo.push(d.deliveryOrganizationNameInfo);
-        }
+        
+        // 使用 Set.add() 自动去重
+        docTypeNameInfo.add(d.docTypeNameInfo);
+        applicantNameInfo.add(d.applicantNameInfo);
+        baseDocTypeInfo.add(d.baseDocTypeInfo);
+        receiveDocNoInfo.add(d.receiveDocNo);
+        deliveryOrganizationNameInfo.add(d.deliveryOrganizationNameInfo);
+        
         return d;
       });
+  
     return addItemFetch({
       functionCode: "wms0008",
       prefix: "wms",
       data: {
-        applicantNameInfo: applicantNameInfo.toString(),
-        baseDocTypeInfo: baseDocTypeInfo.toString(),
-        docTypeNameInfo: docTypeNameInfo.toString(),
-        receiveDocNoInfo: receiveDocNoInfo.toString(),
-        deliveryOrganizationNameInfo: deliveryOrganizationNameInfo.toString(),
+        applicantNameInfo: Array.from(applicantNameInfo).toString(),
+        baseDocTypeInfo: Array.from(baseDocTypeInfo).toString(),
+        docTypeNameInfo: Array.from(docTypeNameInfo).toString(),
+        receiveDocNoInfo: Array.from(receiveDocNoInfo).toString(),
+        deliveryOrganizationNameInfo: Array.from(deliveryOrganizationNameInfo).toString(),
         whsCode,
         inventoryOrganization,
         wms000802,
       },
-    })
-      .then((res) => {
-        if (directConfirm == 1) {
-          commonRequestFetch({
-            functionCode: "wms0008",
-            prefix: "wms",
-            url: "/putaway",
-            data: {
-              docId: res.docId,
-            },
-          })
-            .then(() => {
-              selectWms0007Res.refetch();
-              Toast.show({
-                type: "default",
-                text1: "上架成功",
-                topOffset: 0,
-              });
-            })
-        }
-      })
+    }).then((res) => {
+      if (directConfirm == 1) {
+        return commonRequestFetch({
+          functionCode: "wms0008",
+          prefix: "wms",
+          url: "/putaway",
+          data: {
+            docId: res.docId,
+          },
+        }).then(() => {
+          selectWms0007Res.refetch();
+          Toast.show({
+            type: "default",
+            text1: "上架成功",
+            topOffset: 0,
+          });
+        });
+      }
+    });
   };
+  
 
   const handleSearch = (code: string) => {
     inputRef.current?.focus();
@@ -228,38 +228,32 @@ export default function App() {
     props.values.list[index].putawayLocation = v.code;
   };
 
-  const onSubmit: FormikConfig<any>["onSubmit"] = (value) =>
-    hanlePushData(value);
   return (
-    <View className="flex-1">
-      <View className="p-2 bg-white">
-        <InputSearch
-          placeholder="请输入或 扫描货品编码"
-          onSearch={handleSearch}
-          returnKeyType="search"
-          selectTextOnFocus
-          ref={inputRef}
-        />
-      </View>
-      {selectHistoryLocationPdaRes.isLoading ? (
-        <PageIndicator />
-      ) : (
-        <Formik
-          initialValues={{
-            list: selectHistoryLocationPdaRes.data,
-            directConfirm: 1,
-          }}
-          onSubmit={onSubmit}
-        >
-          {(props) => {
-            return (
-              <View className="flex-1 p-2">
-                <KeyboardAvoidingView
-                  style={{ flex: 1 }}
-                  behavior={"translate-with-padding"}
-                  keyboardVerticalOffset={140}
-                >
-                  <FlatList
+      <View className="flex-1">
+        <View className="p-2 bg-white">
+          <InputSearch
+            placeholder="请输入或 扫描货品编码"
+            onSearch={handleSearch}
+            returnKeyType="search"
+            selectTextOnFocus
+            ref={inputRef}
+          />
+        </View>
+        {selectHistoryLocationPdaRes.isLoading ? (
+          <PageIndicator />
+        ) : (
+          <Formik
+            initialValues={{
+              list: selectHistoryLocationPdaRes.data,
+              directConfirm: 1,
+            }}
+            onSubmit={hanlePushData}
+          >
+            {(props) => {
+              return (
+                <View className="flex-1 p-2">
+                  <FlashList
+                    renderScrollComponent={RenderScrollComponent}
                     data={selectHistoryLocationPdaRes.data as any[]}
                     keyboardShouldPersistTaps="handled"
                     ListEmptyComponent={
@@ -267,10 +261,8 @@ export default function App() {
                         <View className="flex justify-center items-center  h-20 ">
                           <Text className="text-gray-500 ">暂无待上架货品</Text>
                         </View>
-                      ):null
-                    
+                      ) : null
                     }
-                    contentContainerClassName="gap-2"
                     refreshControl={
                       <RefreshControl
                         refreshing={selectWms0007Res.isFetching}
@@ -286,43 +278,45 @@ export default function App() {
                       />
                     )}
                   />
-                </KeyboardAvoidingView>
 
-                {selectWms0007Res.status == "success" &&
-                  selectWms0007Res.data?.length > 0 && (
-                    <>
-                      <View className="flex-row">
-                        <FormikCheckbox name="directConfirm" label="直接确认" />
-                        <TouchableOpacity
-                          disabled={props.isSubmitting}
-                          onPress={() => props.handleSubmit()}
-                          className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
-                        >
-                          {props.isSubmitting && (
-                            <ActivityIndicator
-                              animating={true}
-                              color={"#fff"}
-                            />
-                          )}
-                          <Text className="text-white text-lg">上架</Text>
-                        </TouchableOpacity>
-                      </View>
-                      <LocationModal
-                        visible={visible}
-                        onClose={() => setVisible(false)}
-                        onChange={(v) =>
-                          handleLocationChange(v, lineData.index, props)
-                        }
-                        whsCode={lineData?.whsCode}
-                        areaType={[1, 3, 9, 6, 99]}
-                      />
-                    </>
-                  )}
-              </View>
-            );
-          }}
-        </Formik>
-      )}
-    </View>
+                  {
+                    selectWms0007Res.data?.length > 0 && (
+                      <>
+                        <View className="flex-row">
+                          <FormikCheckbox
+                            name="directConfirm"
+                            label="直接确认"
+                          />
+                          <TouchableOpacity
+                            disabled={props.isSubmitting}
+                            onPress={() => props.handleSubmit()}
+                            className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
+                          >
+                            {props.isSubmitting && (
+                              <ActivityIndicator
+                                animating={true}
+                                color={"#fff"}
+                              />
+                            )}
+                            <Text className="text-white text-lg">上架</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <LocationModal
+                          visible={visible}
+                          onClose={() => setVisible(false)}
+                          onChange={(v) =>
+                            handleLocationChange(v, lineData.index, props)
+                          }
+                          whsCode={lineData?.whsCode}
+                          areaType={[1, 3, 9, 6, 99]}
+                        />
+                      </>
+                    )}
+                </View>
+              );
+            }}
+          </Formik>
+        )}
+      </View>
   );
 }

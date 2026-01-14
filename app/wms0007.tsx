@@ -3,7 +3,6 @@ import EnumSelect from "@/components/EnumSelect";
 import {
   FormikLocationPicker,
   FormikTextInput,
-  FormikCheckbox,
   FormikLocationModal,
 } from "@/components/FormItem";
 import RenderScrollComponent from "@/components/RenderScrollComponent";
@@ -16,34 +15,30 @@ import useEnum from "@/hooks/useEnum";
 import {
   addItemFetch,
   commonRequestFetch,
-  queryOneFetch,
 } from "@/lib/commonServices";
 import "@/lib/request";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useIsFocused } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Formik, FormikProps, useField, useFormikContext } from "formik";
-import { constant, pick } from "lodash-es";
+import { pick } from "lodash-es";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
 export default function Wms0007Screen() {
   const router = useRouter();
   const isFocused = useIsFocused();
-  console.log("local", isFocused);
   const local = useLocalSearchParams();
   const inputRef = useRef<SearchInput>(null);
   const [waitReceiveList, setWaitReceiveList] = useState<any[]>();
@@ -53,7 +48,7 @@ export default function Wms0007Screen() {
     index: 0,
   });
   const [visible, setVisible] = useState(false);
-
+  const [receiverMode,setReceiverMode]=useState<any>(local.baseDocType ? "2" : "1");
   const enumQueryRes = useEnum({
     params: [
       "wms0006DeliveryOrganizationType",
@@ -68,7 +63,6 @@ export default function Wms0007Screen() {
   const selectByBaseDocAndLogisticsDocMutation = useMutation({
     mutationKey: ["selectByBaseDocAndLogisticsDoc"],
     mutationFn: (docNo: string) => {
-      console.log("docNo", docNo);
       return commonRequestFetch<any, any>({
         functionCode: "wms0006",
         prefix: "wms",
@@ -145,9 +139,9 @@ export default function Wms0007Screen() {
           ...a,
           temporaryReceivingLocationName:
             whsRowData?.temporaryReceivingLocationName,
-          temporaryShippingLocation: whsRowData?.temporaryShippingLocation,
-          receiverLocation: whsRowData?.temporaryShippingLocation,
-          receiverLocationName: whsRowData?.temporaryReceivingLocationName,
+            temporaryReceivingLocation: whsRowData?.temporaryReceivingLocation,
+          receiverLocation:whsRowData?.temporaryReceivingLocation,
+          receiverLocationName:whsRowData?.temporaryReceivingLocationName,
           quantity: a.openReceiverQuantity,
         };
       });
@@ -158,6 +152,7 @@ export default function Wms0007Screen() {
     selectByBaseDocAndLogisticsDocMutation.data,
     selectByBaseDocAndLogisticsDocMutation.isPending,
   ]);
+
 
   const onRefresh = () => {
     setWms000101Data(null);
@@ -181,16 +176,6 @@ export default function Wms0007Screen() {
         type: "default",
         text1: "收货成功",
       });
-      if (variables.directConfirm == 1) {
-        commonRequestFetch({
-          functionCode: "wms0007",
-          prefix: "wms",
-          url: "/confirm",
-          data: {
-            docId: res.docId,
-          },
-        });
-      }
     },
   });
 
@@ -255,7 +240,6 @@ export default function Wms0007Screen() {
       ])
     );
   });
-
   return mutateAsync(
     Object.assign(wms000701Data, {
       comment: Array.from(comment).join(','),
@@ -264,8 +248,7 @@ export default function Wms0007Screen() {
       applicantNameInfo: Array.from(applicantNameInfo).join(','),
       baseDocNoInfo: Array.from(baseDocNoInfo).join(','),
       wms000702,
-      receiverMode: value.receiverMode,
-      directConfirm: value.directConfirm,
+      receiverMode,
     })
   );
 };
@@ -275,7 +258,7 @@ export default function Wms0007Screen() {
     setWms000101Data(null);
     selectByBaseDocAndLogisticsDocMutation.mutate(v);
   };
-
+ 
   return (
     
       <View style={styles.container}>
@@ -299,7 +282,6 @@ export default function Wms0007Screen() {
           <Formik
             initialValues={{
               list: lastList,
-              directConfirm: 1,
               receiverMode: local.baseDocType ? "2" : "1",
             }}
             onSubmit={onSubmit}
@@ -385,21 +367,18 @@ export default function Wms0007Screen() {
                       </View>
                     )}
                   />
-                  <View className="flex-row">
-                    <FormikCheckbox label="直接确认" name="directConfirm" />
-                    <TouchableOpacity
-                      disabled={props.isSubmitting}
-                      onPress={() => props.handleSubmit()}
-                      className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
-                    >
-                      {props.isSubmitting && (
-                        <ActivityIndicator animating={true} color={"#fff"} />
-                      )}
-                      <Text className="text-white text-lg">
-                        {props.values.receiverMode == "1" ? "收货" : "上架"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    disabled={props.isSubmitting}
+                    onPress={() => props.handleSubmit()}
+                    className=" bg-blue-500 h-12 items-center justify-center flex-row"
+                  >
+                    {props.isSubmitting && (
+                      <ActivityIndicator animating={true} color={"#fff"} />
+                    )}
+                    <Text className="text-white text-lg">
+                      {props.values.receiverMode == "1" ? "收货" : "上架"}
+                    </Text>
+                  </TouchableOpacity>
                   <FormikLocationModal
                     name={`list.${lineData.index}.receiverLocationName]`}
                     codeName={`list.${lineData.index}.receiverLocation`}
@@ -440,8 +419,13 @@ const styles = StyleSheet.create({
 
 const ReceiverModeItem = () => {
   const [field, meta, helpers] = useField("receiverMode");
+  const local = useLocalSearchParams();
   const formik = useFormikContext<any>();
-
+  useEffect(() => { 
+    if(local.baseDocType=="ass0006"){
+      onChange("2");
+    }
+  }, [local.baseDocType]); 
   const onChange = (v: any) => {
     helpers.setValue(v);
     if (v == "2") {

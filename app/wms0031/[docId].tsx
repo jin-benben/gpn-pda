@@ -624,6 +624,7 @@ const CancelPopup = ({
         >
           <Text className="text-white">确定</Text>
         </TouchableOpacity>
+        <Toast config={toastConfig} />
       </Popup>
     </>
   );

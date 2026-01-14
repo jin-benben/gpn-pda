@@ -142,7 +142,7 @@ export default function App() {
       }),
   });
 
-  const hanlePushData = ({list,directConfirm,}: {list: any[];directConfirm: number;}) => {
+  const hanlePushData = ({list}: {list: any[]}) => {
     const applicantNameInfo = new Set<string>();
     const baseDocTypeInfo = new Set<string>();
     const docTypeNameInfo = new Set<string>();
@@ -180,23 +180,11 @@ export default function App() {
         wms000802,
       },
     }).then((res) => {
-      if (directConfirm == 1) {
-        return commonRequestFetch({
-          functionCode: "wms0008",
-          prefix: "wms",
-          url: "/putaway",
-          data: {
-            docId: res.docId,
-          },
-        }).then(() => {
-          selectWms0007Res.refetch();
-          Toast.show({
-            type: "default",
-            text1: "上架成功",
-            topOffset: 0,
-          });
-        });
-      }
+      selectWms0007Res.refetch();
+      Toast.show({
+        type: "default",
+        text1: "上架成功",
+      });
     });
   };
   
@@ -241,8 +229,7 @@ export default function App() {
         ) : (
           <Formik
             initialValues={{
-              list: selectHistoryLocationPdaRes.data,
-              directConfirm: 1,
+              list: selectHistoryLocationPdaRes.data
             }}
             onSubmit={hanlePushData}
           >
@@ -279,25 +266,19 @@ export default function App() {
                   {
                     selectWms0007Res.data?.length > 0 && (
                       <>
-                        <View className="flex-row">
-                          <FormikCheckbox
-                            name="directConfirm"
-                            label="直接确认"
-                          />
-                          <TouchableOpacity
-                            disabled={props.isSubmitting}
-                            onPress={() => props.handleSubmit()}
-                            className="flex-1 bg-blue-800 h-12 items-center justify-center ml-4 flex-row"
-                          >
-                            {props.isSubmitting && (
-                              <ActivityIndicator
-                                animating={true}
-                                color={"#fff"}
-                              />
-                            )}
-                            <Text className="text-white text-lg">上架</Text>
-                          </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity
+                          disabled={props.isSubmitting}
+                          onPress={() => props.handleSubmit()}
+                          className=" bg-blue-500 h-12 items-center justify-center flex-row"
+                        >
+                          {props.isSubmitting && (
+                            <ActivityIndicator
+                              animating={true}
+                              color={"#fff"}
+                            />
+                          )}
+                          <Text className="text-white text-lg">上架</Text>
+                        </TouchableOpacity>
                         <LocationModal
                           visible={visible}
                           onClose={() => setVisible(false)}

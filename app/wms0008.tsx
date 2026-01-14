@@ -122,7 +122,7 @@ export default function App() {
           putawayLocation: last?.putawayLocation,
           putawayLocationName: last?.putawayLocationName,
           quantity: a.openPutawayQuantity,
-          checked: 1,
+          checked: selectWms0007Res.data.length==1 ? 1 : 0,
         };
       });
     },
@@ -143,7 +143,6 @@ export default function App() {
   });
 
   const hanlePushData = ({list,directConfirm,}: {list: any[];directConfirm: number;}) => {
-    // 使用 Set 进行去重，提高查找效率
     const applicantNameInfo = new Set<string>();
     const baseDocTypeInfo = new Set<string>();
     const docTypeNameInfo = new Set<string>();
@@ -158,8 +157,6 @@ export default function App() {
       .map((d) => {
         whsCode = d.whsCode;
         inventoryOrganization = d.inventoryOrganization;
-        
-        // 使用 Set.add() 自动去重
         docTypeNameInfo.add(d.docTypeNameInfo);
         applicantNameInfo.add(d.applicantNameInfo);
         baseDocTypeInfo.add(d.baseDocTypeInfo);

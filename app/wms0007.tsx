@@ -74,7 +74,7 @@ export default function Wms0007Screen() {
         prefix: "wms",
         url: "/selectByBaseDocAndLogisticsDoc",
         data: {
-          docType: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          docType: [1, 2, 3, 4, 5, 6, 7, 8, 9,10],
           docNos: [docNo],
           baseDocType: local.baseDocType ?? "",
         },
@@ -344,7 +344,7 @@ export default function Wms0007Screen() {
                         <ReceiverModeItem />
                       </View>
                     }
-                    data={lastList as any[]}
+                    data={props.values.list as any[]}
                     renderItem={({ item, index }) => (
                       <View className="bg-white mb-2 rounded p-2 gap-1 mx-2">
                         <Text>
@@ -421,6 +421,7 @@ export default function Wms0007Screen() {
              <Wms0001List wms000101Data={wms000101Data} callback={onRefresh}/>
           )
         }
+        <Toast config={toastConfig}/>
       </View>
   );
 }

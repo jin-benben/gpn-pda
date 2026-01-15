@@ -3,7 +3,6 @@ import {
   FormikLocationPicker,
   FormikTextInput,
 } from "@/components/FormItem";
-import { toastConfig } from "@/components/ToastConfig";
 import InputSearch from "@/components/ui/InputSearch";
 import PageIndicator from "@/components/ui/PageIndicator";
 import Popup from "@/components/ui/Popup";
@@ -11,10 +10,10 @@ import useEnum from "@/hooks/useEnum";
 import { addItemFetch, commonRequestFetch } from "@/lib/commonServices";
 import { getLocalUserInfo } from "@/lib/util";
 import { getEnumStore } from "@/store/enum";
-import { useMutation } from "@tanstack/react-query";
+import useMutation from "@/hooks/useMutation";
 import { Formik } from "formik";
-import { useRef, useState } from "react";
-import { Button, FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { useState } from "react";
+import { Button, FlatList, Pressable, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function Wms0028Screen() {
@@ -38,7 +37,6 @@ export default function Wms0028Screen() {
 
   // 查询
   const selectInventoryPdaMutation = useMutation({
-    mutationKey:["wms0011","selectInventoryPda"],
     mutationFn: (itemOrLocationCode:string) => {
       return commonRequestFetch({
         functionCode: "wms0011",
@@ -100,7 +98,6 @@ export default function Wms0028Screen() {
 
   // 创建快速移动单 fetch
   const wms0028CreateMutation = useMutation({
-    mutationKey: ["wms0028"],
     mutationFn: (wms002802: any) => {
       const inventoryOrganization = wms002802.inventoryOrganization || getEnumStore("Mdm001901")?.[0]?.value;
       console.log(inventoryOrganization,wms002802);

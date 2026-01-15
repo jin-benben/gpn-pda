@@ -9,7 +9,7 @@ import { OnHandModal, BindLocationModal, UnBindLocationModal, Wms0011UnBindLocat
 import useEnum from "@/hooks/useEnum";
 import {commonRequestFetch} from "@/lib/commonServices";
 import { getLocalUserInfo } from "@/lib/util";
-import { useMutation } from "@tanstack/react-query";
+import useMutation from "@/hooks/useMutation";
 import { useLocalSearchParams } from "expo-router";
 import { lazy, useEffect, useMemo, useState } from "react";
 import {
@@ -60,7 +60,6 @@ export default function Wms0017Screen() {
   
   // 查询
   const selectInventoryPdaMutation = useMutation({
-    mutationKey: ["wms0011", "selectInventoryPda",isShowZeroStock,whsCode],
     mutationFn: (itemOrLocationCode: string) => {
       return commonRequestFetch({
         functionCode: "wms0011",

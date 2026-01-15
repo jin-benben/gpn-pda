@@ -2,7 +2,7 @@ import { addItemFetch, deleteItemFetch, commonRequestFetch } from "@/lib/commonS
 import MyMath from "@/lib/math";
 import { getEnumStore } from "@/store/enum";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useMutation } from "@tanstack/react-query";
+import useMutation from "@/hooks/useMutation";
 import React, { useState } from "react";
 import { TouchableOpacity, Modal, View, Alert, TextInput,Text, ActivityIndicator, TouchableOpacityProps } from "react-native";
 import Toast from "react-native-toast-message";
@@ -27,7 +27,6 @@ export const BindLocationModal = ({
   const [locationVisible, setLocationVisible] = useState(false);
   // 绑定 fetch
   const createMdm0131Mutation = useMutation({
-    mutationKey: ["mdm0131"],
     mutationFn: ({ code, name }: any) => {
       console.log(code, name);
       return addItemFetch({
@@ -49,13 +48,6 @@ export const BindLocationModal = ({
       })
       callback();
       setVisible(false);
-    },
-    onError: (error) => { 
-      console.log(error);
-      Toast.show({
-        type: "default",
-        text1: error.message,
-      })
     },
   });
   return (
@@ -113,7 +105,6 @@ interface UnBindLocationProps {
 export const UnBindLocationModal = ({ code, callback }: UnBindLocationProps) => {
   // 解绑
   const deleteMdm0131Mutation = useMutation({
-    mutationKey: ["mdm0131"],
     mutationFn: () => {
       return deleteItemFetch({
         functionCode: "mdm0131",
@@ -129,12 +120,6 @@ export const UnBindLocationModal = ({ code, callback }: UnBindLocationProps) => 
         text1:"解绑成功"
       })
       callback();
-    },
-    onError: (error) => { 
-      Toast.show({
-        type:"default",
-        text1:error.message
-      })
     },
   });
 
@@ -169,7 +154,6 @@ interface UnBindLocationProps {
 export const Wms0011UnBindLocationModal = ({ code, callback }: UnBindLocationProps) => {
   // 解绑
   const batchUnbindLocationMutation = useMutation({
-    mutationKey: ["batchUnbindLocation"],
     mutationFn: () => {
       return commonRequestFetch({
         functionCode: "wms0011",
@@ -245,7 +229,6 @@ export const OnHandModal = ({
   const [onHandVisible, setOnHandVisible] = useState(false);
   // 盘点
   const createWms0017Mutation = useMutation({
-    mutationKey: ["wms0017"],
     mutationFn: (data: any) => {
       return addItemFetch({
         functionCode: "wms0017",

@@ -1,7 +1,7 @@
 import { commonRequestFetch } from '@/lib/commonServices'
 import { EnumItem, setEnumStore } from '@/store/enum'
-import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
+import useCustomMutation from './useMutation'
 interface ParamsValueObj { 
   code:string,filter?:Record<string,any[]>
 }
@@ -10,9 +10,8 @@ interface Params {
   params:ParamsValue[]
 }
 const useEnum = ({params}:Params) => {
-  const {data,status,isFetching} = useQuery({
-    queryKey:['enum',params],
-    queryFn:()=>{
+  const {data,mutate,isPending} = useCustomMutation({
+    mutationFn:()=>{
       const lastParams:Record<string,ParamsValueObj> = {}
       params.forEach(item=>{
         if(typeof item === "string"){
@@ -29,16 +28,17 @@ const useEnum = ({params}:Params) => {
         prefix:"cts",
         url:'/get',
       })
-    }
-  })
-  useEffect(()=>{ 
-    if(data){
+    },
+    onSuccess(data) { 
       Object.keys(data).forEach(item=>{
         setEnumStore(item,data[item])
       })
-    }
-  },[data]) 
-  return {status,data,isFetching}
+    },
+  })
+  useEffect(()=>{ 
+    mutate()
+  },[]) 
+  return {data}
 }
 
 export default useEnum

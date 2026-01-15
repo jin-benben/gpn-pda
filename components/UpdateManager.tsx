@@ -6,7 +6,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { commonRequestFetch } from '@/lib/commonServices';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from './ToastConfig';
-import { useMutation } from '@tanstack/react-query';
+import useCustomMutation from '@/hooks/useMutation';
 
 export default function UpdatesDemo() {
   const [autoUpdate, setAutoUpdate] = useState(true);
@@ -38,8 +38,7 @@ export default function UpdatesDemo() {
     }
   }, [isUpdateAvailable]);
 
-  const selectVersionMutation = useMutation({
-    mutationKey:["selectVersion"],
+  const selectVersionMutation = useCustomMutation({
     mutationFn:()=>{
       return  commonRequestFetch({
         functionCode:"smp0055",

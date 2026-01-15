@@ -8,11 +8,11 @@ import LocationModal, { LocationItem } from "@/components/LocationModal";
 import RenderScrollComponent from "@/components/RenderScrollComponent";
 import InputSearch, { SearchInput } from "@/components/ui/InputSearch";
 import PageIndicator from "@/components/ui/PageIndicator";
+import useCustomMutation from "@/hooks/useMutation";
 import { addItemFetch, commonRequestFetch } from "@/lib/commonServices";
 import { getLocalUserInfo } from "@/lib/util";
 import { FlashList } from "@shopify/flash-list";
-import { useQuery } from "@tanstack/react-query";
-import { Formik, FormikConfig, FormikProps } from "formik";
+import { Formik, FormikProps } from "formik";
 import React, {
   FC,
   memo,
@@ -23,20 +23,20 @@ import React, {
 } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   RefreshControl,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
 
+const whsCode = getLocalUserInfo()?.whsCode;
 interface RenderItemProps {
   item: any;
   index: number;
   onOpenModal: (index: number) => void;
 }
+
 
 const RenderItem: FC<RenderItemProps> = memo(({ item, index, onOpenModal }) => {
   return (
@@ -78,69 +78,69 @@ const RenderItem: FC<RenderItemProps> = memo(({ item, index, onOpenModal }) => {
   );
 });
 
+async function getPushDataFetch(itemCode:string){
+  const selectWms0007Res = await commonRequestFetch<any, any>({
+    functionCode: "wms0007",
+    prefix: "wms",
+    url: "/selectWms0007",
+    data: {
+      whsCode: getLocalUserInfo()?.whsCode,
+      itemCode,
+    },
+  })
+  if(selectWms0007Res.list.length){
+    
+    const selectHistoryLocationPdaRes = await commonRequestFetch<any, any>({
+      functionCode: "wms0008",
+      prefix: "wms",
+      url: "/selectHistoryLocationPda",
+      data: {
+        itemCodeWhs: selectWms0007Res.list.map((d: any) => ({
+          itemCode: d.itemCode,
+          whsCode: d.whsCode,
+          inventoryOrganization: d.inventoryOrganization,
+        })),
+      },
+    })
+    return Promise.resolve( selectWms0007Res.list.map((a: any) => {
+      const last = selectHistoryLocationPdaRes?.itemCodeWhsLocation.find(
+        (d: any) => d.itemCode === a.itemCode && d.whsCode === a.whsCode
+      );
+      return {
+        ...a,
+        putawayLocation: last?.putawayLocation,
+        putawayLocationName: last?.putawayLocationName,
+        quantity: a.openPutawayQuantity,
+        checked: selectWms0007Res.list.length==1 ? 1 : 0,
+      };
+    }))
+  }else{
+    return Promise.resolve([])
+  }
+  
+}
+
 export default function App() {
   const [itemCode, setItemCode] = useState("");
-  const [lineData, setLineData] = useState({
-    whsCode: "",
-    index: 0,
-  });
+  const [lineIndex, setLineIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const inputRef = useRef<SearchInput>(null);
-  const selectWms0007Res = useQuery({
-    queryKey: ["selectWms0007", itemCode ?? ""],
-    select: (res: any) => res.list,
-    queryFn: () =>
-      commonRequestFetch<any, any>({
-        functionCode: "wms0007",
-        prefix: "wms",
-        url: "/selectWms0007",
-        data: {
-          whsCode: getLocalUserInfo()?.whsCode,
-          itemCode,
-        },
-      }),
-  });
 
-  useEffect(() => {
-    if (
-      selectWms0007Res.status == "success" &&
-      selectWms0007Res.data?.length == 0
-    ) {
-      inputRef.current?.focus();
+  const {isPending,data,mutate} = useCustomMutation({
+    mutationFn:getPushDataFetch,
+    onSuccess:(res)=>{
+      if(res.length){
+
+      }
     }
-  }, [selectWms0007Res.status, selectWms0007Res.data]);
+  })
 
-  const selectHistoryLocationPdaRes = useQuery({
-    queryKey: ["selectHistoryLocationPda", selectWms0007Res.data],
-    select: (res: any) => {
-      return selectWms0007Res.data.map((a: any) => {
-        const last = res.itemCodeWhsLocation.find(
-          (d: any) => d.itemCode === a.itemCode && d.whsCode === a.whsCode
-        );
-        return {
-          ...a,
-          putawayLocation: last?.putawayLocation,
-          putawayLocationName: last?.putawayLocationName,
-          quantity: a.openPutawayQuantity,
-          checked: selectWms0007Res.data.length==1 ? 1 : 0,
-        };
-      });
-    },
-    enabled: !!selectWms0007Res.data,
-    queryFn: () =>
-      commonRequestFetch<any, any>({
-        functionCode: "wms0008",
-        prefix: "wms",
-        url: "/selectHistoryLocationPda",
-        data: {
-          itemCodeWhs: selectWms0007Res.data.map((d: any) => ({
-            itemCode: d.itemCode,
-            whsCode: d.whsCode,
-            inventoryOrganization: d.inventoryOrganization,
-          })),
-        },
-      }),
-  });
+  useEffect(()=>{
+    mutate(itemCode)
+  },[])
+  const onRefresh = ()=>{
+    mutate(itemCode)
+  }
 
   const hanlePushData = ({list}: {list: any[]}) => {
     const applicantNameInfo = new Set<string>();
@@ -180,7 +180,7 @@ export default function App() {
         wms000802,
       },
     }).then((res) => {
-      selectWms0007Res.refetch();
+      mutate(itemCode);
       Toast.show({
         type: "default",
         text1: "上架成功",
@@ -190,16 +190,12 @@ export default function App() {
   
 
   const handleSearch = (code: string) => {
-    inputRef.current?.focus();
-    setItemCode(code);
+    mutate(code);
   };
 
   // 打开库位选择器
   const onOpenModal = useCallback((index: number) => {
-    setLineData({
-      whsCode: selectWms0007Res.data[index].whsCode,
-      index,
-    });
+    setLineIndex(index);
     setVisible(true);
   }, []);
 
@@ -221,15 +217,16 @@ export default function App() {
             onSearch={handleSearch}
             returnKeyType="search"
             selectTextOnFocus
+            onChangeText={setItemCode}
             ref={inputRef}
           />
         </View>
-        {selectHistoryLocationPdaRes.isLoading ? (
+        {isPending ? (
           <PageIndicator />
         ) : (
           <Formik
             initialValues={{
-              list: selectHistoryLocationPdaRes.data
+              list: data
             }}
             onSubmit={hanlePushData}
           >
@@ -238,19 +235,17 @@ export default function App() {
                 <View className="flex-1 p-2">
                   <FlashList
                     renderScrollComponent={RenderScrollComponent}
-                    data={selectHistoryLocationPdaRes.data as any[]}
+                    data={data as any[]}
                     keyboardShouldPersistTaps="handled"
                     ListEmptyComponent={
-                      selectHistoryLocationPdaRes.status == "success" ? (
-                        <View className="flex justify-center items-center  h-20 ">
-                          <Text className="text-gray-500 ">暂无待上架货品</Text>
-                        </View>
-                      ) : null
+                      <View className="flex justify-center items-center  h-20 ">
+                        <Text className="text-gray-500 ">暂无待上架货品</Text>
+                      </View>
                     }
                     refreshControl={
                       <RefreshControl
-                        refreshing={selectWms0007Res.isFetching}
-                        onRefresh={selectWms0007Res.refetch}
+                        refreshing={isPending}
+                        onRefresh={onRefresh}
                       />
                     }
                     keyExtractor={(item) => item.receiveLineId}
@@ -264,7 +259,7 @@ export default function App() {
                   />
 
                   {
-                    selectWms0007Res.data?.length > 0 && (
+                    data?.length > 0 && (
                       <>
                         <TouchableOpacity
                           disabled={props.isSubmitting}
@@ -283,9 +278,9 @@ export default function App() {
                           visible={visible}
                           onClose={() => setVisible(false)}
                           onChange={(v) =>
-                            handleLocationChange(v, lineData.index, props)
+                            handleLocationChange(v, lineIndex, props)
                           }
-                          whsCode={lineData?.whsCode}
+                          whsCode={whsCode as string}
                           areaType={[1, 3, 9, 6, 99]}
                         />
                       </>

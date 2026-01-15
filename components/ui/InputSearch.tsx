@@ -35,10 +35,11 @@ const InputSearch: React.FC<InputSearchProps> = ({
   }
  },[inputRef]);
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       inputRef.current?.focus();
     }, 1000);
-  }, [inputRef.current]);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <View style={styles.container}>

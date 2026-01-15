@@ -4,9 +4,9 @@ import Empty from '@/components/ui/Empty';
 import InputSearch from '@/components/ui/InputSearch';
 import PageIndicator from '@/components/ui/PageIndicator';
 import useEnum from '@/hooks/useEnum';
+import useCustomMutation from '@/hooks/useMutation';
 import { commonRequestFetch } from '@/lib/commonServices';
 import { getLocalUserInfo } from '@/lib/util';
-import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Text, FlatList, StyleSheet, View,Image, Pressable } from 'react-native';
@@ -25,8 +25,7 @@ export default function CombinationScreen() {
       }
     ],
   });
-  const {mutate,data,isPending} = useMutation({
-    mutationKey: ['selectGoodsBySku',whsCode],
+  const {mutate,data,isPending} = useCustomMutation({
     mutationFn:(skuId:string)=>{
       return commonRequestFetch<any,any>({
         functionCode:"mdm0085",

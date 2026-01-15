@@ -1,9 +1,9 @@
 import { queryListFetch } from '@/lib/commonServices'
-import { useQuery } from '@tanstack/react-query'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import InputSearch from './ui/InputSearch'
 import Popup from './ui/Popup'
+import useCustomMutation from '@/hooks/useMutation'
 
 export interface LocationItem {
   code: string;
@@ -20,10 +20,8 @@ export interface LocationModalProps {
 }
 const LocationModal = ({whsCode,areaType,visible,onClose,onChange}:LocationModalProps) => {
   const [searchText, setSearchText] = React.useState('');
-  const {data,refetch} = useQuery({
-    queryKey:["Mdm0096",searchText],
-    enabled:!!visible,
-    queryFn:()=>{
+  const {data,mutate} = useCustomMutation({
+    mutationFn:()=>{
       return queryListFetch<any,LocationItem>({
         functionCode:"mdm0096",
         prefix:"mdm2",
@@ -43,6 +41,11 @@ const LocationModal = ({whsCode,areaType,visible,onClose,onChange}:LocationModal
       })
     }
   })
+  useEffect(()=>{
+    if(visible){
+      mutate()
+    }
+  },[visible])
   const onSelect=(v:LocationItem)=>{
     onChange?.(v)
     onClose()

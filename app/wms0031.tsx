@@ -3,12 +3,13 @@ import EnumLabel from "@/components/EnumLabel";
 import Tabs from "@/components/Tabs";
 import Empty from "@/components/ui/Empty";
 import useEnum from "@/hooks/useEnum";
+import useCustomMutation from "@/hooks/useMutation";
 import { commonRequestFetch, queryListFetch } from "@/lib/commonServices";
 import { useIsFocused } from "@react-navigation/native";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React, { memo, useDeferredValue, useState } from "react";
+import React, { memo, useDeferredValue, useEffect, useState } from "react";
 import { FlatList, GestureResponderEvent, ListRenderItemInfo, Pressable, RefreshControl, Text, ToastAndroid, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 interface RenderItemProps extends ListRenderItemInfo<any>{
   item:any,
@@ -16,8 +17,7 @@ interface RenderItemProps extends ListRenderItemInfo<any>{
 }
 const RenderItem = memo(({item,callback}:RenderItemProps)=>{
   const router = useRouter();
-  const startMutation = useMutation({
-    mutationKey: ["wms0031","start",item.docId],
+  const startMutation = useCustomMutation({
     mutationFn: ()=>{
       return  commonRequestFetch({
         functionCode:"wms0031",
@@ -30,7 +30,10 @@ const RenderItem = memo(({item,callback}:RenderItemProps)=>{
       })
     },
     onSuccess: () => {
-      ToastAndroid.show("领取成功",ToastAndroid.SHORT);
+      Toast.show({
+        type:"default",
+        text1:"领取成功"
+      })
       callback();
       router.navigate({
         pathname:"/wms0031/[docId]",
@@ -41,8 +44,7 @@ const RenderItem = memo(({item,callback}:RenderItemProps)=>{
       
     }
   })
-  const cancelMutation = useMutation({
-    mutationKey: ["wms0031","cancel",item.docId],
+  const cancelMutation = useCustomMutation({
     mutationFn: ()=>{
       return  commonRequestFetch({
         functionCode:"wms0031",
@@ -55,12 +57,12 @@ const RenderItem = memo(({item,callback}:RenderItemProps)=>{
       })
     },
     onSuccess: () => {
-      ToastAndroid.show("取消成功",ToastAndroid.SHORT);
+      Toast.show({
+        type:"default",
+        text1:"取消成功"
+      })
       callback();
     },
-    onError: (error) => {
-      ToastAndroid.show("取消失败",ToastAndroid.SHORT);
-    }
   })
   const onPress=(e:GestureResponderEvent)=>{
     e.stopPropagation();
@@ -124,10 +126,8 @@ export default function App() {
   const isFocused = useIsFocused() 
   const [activeKey,setActiveKey] = useState("1");
   const deferActiveKey = useDeferredValue(activeKey)
-  const {data,refetch,isLoading} = useQuery({
-    queryKey: ['wms0031',deferActiveKey,isFocused],
-    refetchOnWindowFocus: false,
-    queryFn: ()=>{
+  const {data,isPending,mutate} = useCustomMutation({
+    mutationFn: ()=>{
       return queryListFetch<any,any>({
         functionCode:"wms0031",
         prefix:"wms",
@@ -145,6 +145,11 @@ export default function App() {
       })
     }
   })
+  useEffect(()=>{
+    if(isFocused){
+      mutate()
+    }
+  },[isFocused,deferActiveKey])
   
   useEnum({
     params:["Mdm0020","wms003101DocSourceType","wms003101DocPriority"]
@@ -174,10 +179,10 @@ export default function App() {
       <Tabs activeKey={activeKey} onChange={setActiveKey} items={tabs}/>
       <FlatList 
         data={data?.rows} 
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch}/>}
+        refreshControl={<RefreshControl refreshing={isPending} onRefresh={mutate}/>}
         keyExtractor={(item)=>item.docId}
         ListEmptyComponent={<Empty />}
-        renderItem={(props)=><RenderItem callback={refetch} {...props}/>}
+        renderItem={(props)=><RenderItem callback={mutate} {...props}/>}
       />
     </View>
   );

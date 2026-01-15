@@ -20,7 +20,7 @@ import {
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { FlashList, ListRenderItemInfo, useMappingHelper } from "@shopify/flash-list";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import useMutation from "@/hooks/useMutation";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Formik, useFormikContext } from "formik";
 import React, { useEffect, useMemo, useState } from "react";
@@ -34,6 +34,7 @@ import {
 } from "react-native";
 import Reanimated,{ useAnimatedStyle } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
+import useCustomMutation from "@/hooks/useMutation";
 
 interface EditRenderItemProps extends ListRenderItemInfo<any> {
   whsCode: string;
@@ -180,11 +181,11 @@ export default function Wms0031Screen() {
   // 获取单据详情
   const {
     data: wms00031Data,
-    isFetching,
-    refetch,
-  } = useQuery({
-    queryKey: ["wms0031", local.docId],
-    queryFn: () => {
+    isPending,
+    mutate,
+  } = useMutation({
+    
+    mutationFn: () => {
       return queryOneFetch<any, any>({
         functionCode: "wms0031",
         prefix: "wms",
@@ -194,6 +195,12 @@ export default function Wms0031Screen() {
       });
     },
   });
+
+  useEffect(()=>{
+    if(local.docId){
+      mutate();
+    }
+  },[local.docId])
 
   const waitHandleList = useMemo(() => {
     if (wms00031Data?.docStatus == 4) {
@@ -229,7 +236,6 @@ export default function Wms0031Screen() {
 
   // 领取
   const startMutation = useMutation({
-    mutationKey: ["wms0031", "start", wms00031Data?.docId],
     mutationFn: () => {
       return commonRequestFetch({
         functionCode: "wms0031",
@@ -246,19 +252,12 @@ export default function Wms0031Screen() {
         type: "default",
         text1: "领取成功",
         visibilityTime: 2000,
-        onHide:refetch
-      });
-    },
-    onError: (error) => { 
-      Toast.show({
-        type: "default",
-        text1: error.message,
+        onHide:mutate
       });
     },
   });
   // 确认补货
   const confirmMutation = useMutation({
-    mutationKey: ["wms0031", "confirm", wms00031Data?.docId],
     mutationFn: (location) => {
       return commonRequestFetch({
         functionCode: "wms0031",
@@ -276,15 +275,9 @@ export default function Wms0031Screen() {
         type: "default",
         text1: "补货成功",
         visibilityTime: 2000,
-        onHide:refetch
+        onHide:mutate
       });
-    },
-    onError: (error) => { 
-      Toast.show({
-        type: "default",
-        text1: error.message,
-      });
-    },
+    }
   });
 
   // 关闭 location
@@ -326,7 +319,7 @@ export default function Wms0031Screen() {
       }
       confirmMutation.mutate(needConfirms);
   };
-  if (isFetching) {
+  if (isPending || !wms00031Data) {
     return <PageIndicator />;
   }
   return (
@@ -338,7 +331,7 @@ export default function Wms0031Screen() {
             renderScrollComponent={RenderScrollComponent}
             keyboardShouldPersistTaps="handled"
             refreshControl={
-              <RefreshControl refreshing={isFetching} onRefresh={refetch} />
+              <RefreshControl refreshing={isPending} onRefresh={mutate} />
             }
             ListHeaderComponent={
               <View className="gap-2 p-2 bg-white">
@@ -407,7 +400,7 @@ export default function Wms0031Screen() {
                     </TouchableOpacity>
                     <CancelPopup
                       cancelList={waitHandleList}
-                      callback={refetch}
+                      callback={mutate}
                       wms00031Data={wms00031Data}
                     />
                   </>
@@ -468,10 +461,8 @@ const TargetLocation = ({
     formik.setFieldValue(codeName,v.location);
     onClose()
   }
-  const { data, isFetching } = useQuery({
-    enabled,
-    queryKey: ["mdm0131", whsCode, itemCode],
-    queryFn: () => {
+  const { data, isPending,mutate } = useCustomMutation({
+    mutationFn: () => {
       return queryListFetch<any, any>({
         functionCode: "mdm0131",
         prefix: "mdm3",
@@ -486,7 +477,12 @@ const TargetLocation = ({
       });
     },
   });
-  if (isFetching) {
+  useEffect(() => {
+    if (enabled) {
+      mutate();
+    }
+  }, [enabled]);
+  if (isPending) {
     return (
       <View className="flex-1 items-center justify-center h-20">
         <ActivityIndicator size="large" />
@@ -531,7 +527,6 @@ const CancelPopup = ({
   }, [visible]);
   // 手动完成
   const cancelLineMutation = useMutation({
-    mutationKey: ["wms0031", "cancelLine", wms00031Data?.docId],
     mutationFn: (wms003102LineIds: string[]) => {
       return commonRequestFetch({
         functionCode: "wms0031",
@@ -551,13 +546,7 @@ const CancelPopup = ({
         type: "default",
         text1: "取消成功",
       });
-    },
-    onError: (error) => { 
-      Toast.show({
-        type: "default",
-        text1: error.message,
-      });
-    },
+    }
   });
   const deleteLine = (lineId: string) => {
     setList(list.filter((a: any) => a.lineId !== lineId));

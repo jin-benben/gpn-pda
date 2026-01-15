@@ -2,12 +2,13 @@
 import EnumLabel from "@/components/EnumLabel";
 import Empty from "@/components/ui/Empty";
 import useEnum from "@/hooks/useEnum";
+import useCustomMutation from "@/hooks/useMutation";
 import { queryListFetch } from "@/lib/commonServices";
 import { useIsFocused } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { memo } from "react";
+import React, { memo, useEffect } from "react";
 import { GestureResponderEvent, Pressable, RefreshControl, Text, View,StyleSheet, ListRenderItemInfo, FlatList } from "react-native";
 
 interface RenderItemProps extends ListRenderItemInfo<any>{
@@ -52,10 +53,8 @@ const RenderItem = memo(({item}:RenderItemProps)=>{
 
 export default function App() {
   const isFocused = useIsFocused() 
-  const {data,refetch,isLoading} = useQuery({
-    queryKey: ['wms0034',isFocused],
-    refetchOnWindowFocus: false,
-    queryFn: ()=>{
+  const {data,isPending,mutate} = useCustomMutation({
+    mutationFn: ()=>{
       return queryListFetch<any,any>({
         functionCode:"wms0034",
         prefix:"wms",
@@ -78,13 +77,18 @@ export default function App() {
   useEnum({
     params:["Mdm0020","wms0034DocStatus","wms0034ProcessingMethod","wms0034DocType"]
   })
-
+  
+  useEffect(()=>{
+    if(isFocused){
+      mutate()
+    }   
+  },[isFocused])
  
   return (
    <View className="flex-1">
      <FlatList 
       data={data?.rows} 
-      refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch}/>}
+      refreshControl={<RefreshControl refreshing={isPending} onRefresh={mutate}/>}
       keyExtractor={(item)=>item.docId}
       ListEmptyComponent={<Empty />}
       contentContainerClassName="pt-2"

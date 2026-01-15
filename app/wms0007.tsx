@@ -12,6 +12,7 @@ import InputSearch, { SearchInput } from "@/components/ui/InputSearch";
 import PageIndicator from "@/components/ui/PageIndicator";
 import theme from "@/const/theme";
 import useEnum from "@/hooks/useEnum";
+import useMutation from "@/hooks/useMutation";
 import {
   addItemFetch,
   commonRequestFetch,
@@ -20,7 +21,6 @@ import "@/lib/request";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useIsFocused } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
-import { useMutation } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Formik, FormikProps, useField, useFormikContext } from "formik";
@@ -61,7 +61,6 @@ export default function Wms0007Screen() {
   const [searchText, setSearchText] = useState(local.docNo as string);
   // 查询待收货单据信息
   const selectByBaseDocAndLogisticsDocMutation = useMutation({
-    mutationKey: ["selectByBaseDocAndLogisticsDoc"],
     mutationFn: (docNo: string) => {
       return commonRequestFetch<any, any>({
         functionCode: "wms0006",
@@ -162,7 +161,6 @@ export default function Wms0007Screen() {
 
   // 创建收货单
   const { mutateAsync, isPending: isAddLoading } = useMutation({
-    mutationKey: ["wms0007"],
     mutationFn: (data: any) => {
       return addItemFetch<any>({
         functionCode: "wms0007",
@@ -484,7 +482,6 @@ interface Wms0001ListItemProps {
 }
 const Wms0001List = ({callback,wms000101Data}:Wms0001ListItemProps) => {
   const wms0001CancelMutation = useMutation({
-    mutationKey: ["wms000701"],
     mutationFn: (data: any) => {
       return commonRequestFetch<any, any>({
         functionCode: "wms0001",

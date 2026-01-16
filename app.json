@@ -2,7 +2,7 @@
   "expo": {
     "name": "工品牛",
     "slug": "gpn-wms",
-    "version": "0.1.3",
+    "version": "0.1.5",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "gpnwms",
@@ -51,7 +51,7 @@
               "arm64-v8a"
             ],
             "enableMinifyInReleaseBuilds":true,
-            "enableShrinkResourcesInReleaseBuilds":true
+            "enableShrinkResourcesInReleaseBuilds":true,
           }
         }
       ]
@@ -65,7 +65,7 @@
       "eas": {
         "projectId": "b3574ec6-e82c-42c7-b04b-e365bf42a02b"
       },
-      "api_url": "https://bs-api.gongpinniu.com"
+      "api_url": "https://bs-api-dev.gongpinniu.com"
     },
     "owner": "jin-benben",
     "runtimeVersion": {

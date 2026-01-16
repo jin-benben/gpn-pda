@@ -2,7 +2,7 @@
 import theme from '@/const/theme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import React, { RefObject, use, useEffect, useImperativeHandle, useInsertionEffect, useRef } from 'react';
-import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, Touchable, TouchableOpacity, View } from 'react-native';
 
 export interface SearchInput extends Pick<TextInput,"focus"|"blur">{
   
@@ -42,7 +42,7 @@ const InputSearch: React.FC<InputSearchProps> = ({
   }, []);
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container}>
       <MaterialCommunityIcons style={styles.searchButton} name="line-scan" size={16} color={theme.main} />
       <TextInput
         style={styles.input}
@@ -53,7 +53,7 @@ const InputSearch: React.FC<InputSearchProps> = ({
         {...props}
         ref={inputRef}
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 

@@ -1,5 +1,6 @@
 
 import EnumLabel from "@/components/EnumLabel";
+import { toastConfig } from "@/components/ToastConfig";
 import Empty from "@/components/ui/Empty";
 import useEnum from "@/hooks/useEnum";
 import useCustomMutation from "@/hooks/useMutation";
@@ -10,6 +11,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { memo, useEffect } from "react";
 import { GestureResponderEvent, Pressable, RefreshControl, Text, View,StyleSheet, ListRenderItemInfo, FlatList } from "react-native";
+import Toast from "react-native-toast-message";
 
 interface RenderItemProps extends ListRenderItemInfo<any>{
   item:any,
@@ -94,6 +96,7 @@ export default function App() {
       contentContainerClassName="pt-2"
       renderItem={(props)=><RenderItem {...props}/>}
     />
+    <Toast config={toastConfig} visibilityTime={2000} />
    </View>
   );
 }

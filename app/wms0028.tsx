@@ -15,6 +15,7 @@ import { Formik } from "formik";
 import { useState } from "react";
 import { Button, FlatList, Pressable, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
+import { toastConfig } from "@/components/ToastConfig";
 
 export default function Wms0028Screen() {
   const whsCode = getLocalUserInfo()?.whsCode;
@@ -212,6 +213,7 @@ export default function Wms0028Screen() {
           )}
         />  
       </Popup>
+      <Toast config={toastConfig} visibilityTime={2000} />
     </View>
   );
 }

@@ -1,11 +1,11 @@
-import UpdateManager from "@/components/UpdateManager";
 import { getLocalUserInfo } from "@/lib/util";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Link, Stack, router } from "expo-router";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Link, Stack, useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { Suspense, lazy } from "react";
 const LazyUpdateManager = lazy(() => import('@/components/UpdateManager'));
+
 const menuOptions = [
   {
     url: './wms0007',
@@ -50,6 +50,7 @@ const menuOptions = [
 ]
 export default function Index() {
   const userInfo = getLocalUserInfo();
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <Stack.Screen options={{
@@ -74,12 +75,12 @@ export default function Index() {
       <View className="flex-row flex-wrap"> 
         {
           menuOptions.map((item, index) => (
-            <Link href={item.url as any} key={item.url} asChild> 
-              <TouchableOpacity className="w-1/4 justify-center items-center h-24 gap-2 py-2">
+            <View key={item.url} className="w-1/4 h-24 py-2"> 
+              <TouchableOpacity onPress={() => router.push(item.url as any)} className="h-full w-full justify-center items-center gap-2">
                 <Image style={{width:30,height:30}} source={item.icon} />
                 <Text>{item.text}</Text>
               </TouchableOpacity>
-            </Link>
+            </View>
           ))
         }
       </View>

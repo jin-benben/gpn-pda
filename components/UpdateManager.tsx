@@ -64,13 +64,7 @@ export default function UpdatesDemo() {
             },
           },
         ]);
-      }else{
-        Toast.show({
-          type: 'default',
-          text1: '当前版本已是最新版本',
-        });
       }
-      
     }
   })
  

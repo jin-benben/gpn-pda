@@ -10,6 +10,8 @@ import { useRouter } from "expo-router";
 import React, { memo, useDeferredValue, useEffect, useState } from "react";
 import { FlatList, GestureResponderEvent, ListRenderItemInfo, Pressable, RefreshControl, Text, ToastAndroid, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
+import { getLocalUserInfo } from '@/lib/util'
+import { toastConfig } from "@/components/ToastConfig";
 
 interface RenderItemProps extends ListRenderItemInfo<any>{
   item:any,
@@ -133,6 +135,7 @@ export default function App() {
         prefix:"wms",
         data:{
           docStatusList:[deferActiveKey],
+          whsCode:getLocalUserInfo()?.whsCode,
           page:1,
           size:100,
           orderBy:[
@@ -184,6 +187,7 @@ export default function App() {
         ListEmptyComponent={<Empty />}
         renderItem={(props)=><RenderItem callback={mutate} {...props}/>}
       />
+      <Toast config={toastConfig} visibilityTime={2000} />
     </View>
   );
 }

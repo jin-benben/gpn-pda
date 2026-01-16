@@ -6,6 +6,7 @@ import {
 } from "@/components/FormItem";
 import LocationModal, { LocationItem } from "@/components/LocationModal";
 import RenderScrollComponent from "@/components/RenderScrollComponent";
+import { toastConfig } from "@/components/ToastConfig";
 import InputSearch, { SearchInput } from "@/components/ui/InputSearch";
 import PageIndicator from "@/components/ui/PageIndicator";
 import useCustomMutation from "@/hooks/useMutation";
@@ -290,6 +291,7 @@ export default function App() {
             }}
           </Formik>
         )}
+        <Toast config={toastConfig} visibilityTime={2000} />
       </View>
   );
 }

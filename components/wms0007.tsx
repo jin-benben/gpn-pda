@@ -339,8 +339,8 @@ export const OnHandModal = ({
         statusBarTranslucent
         onRequestClose={() => setOnHandVisible(false)}
       >
-        <View className="flex-1 justify-center items-center px-2">
-          <View className="bg-white rounded w-full p-4 gap-2">
+        <View className="flex-1 items-center px-2">
+          <View className="bg-white rounded w-full p-4 mt-10 gap-2">
             <Text className="text-center font-semibold text-xl pb-4">盘点</Text>
             <TouchableOpacity
               onPress={() => setOnHandVisible(false)}

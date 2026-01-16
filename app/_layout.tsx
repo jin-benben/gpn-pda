@@ -1,8 +1,6 @@
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import Toast from "react-native-toast-message";
-import { toastConfig } from "@/components/ToastConfig";
 import "../global.css";
 
 export default function RootLayout() {
@@ -29,7 +27,6 @@ export default function RootLayout() {
           <Stack.Screen name="wms0034" options={{ title: "收货异常反馈" }} />
           <Stack.Screen name="combination" options={{ title: "组合装查询" }} />
         </Stack>
-        <Toast config={toastConfig} visibilityTime={2000} />
       </GestureHandlerRootView>
     </KeyboardProvider>
   );

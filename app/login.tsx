@@ -8,16 +8,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as z from "zod";
-const schema = z.object({
-  password: z.string().min(1, "请输入密码"),
-  phone: z.string().min(1, "请输入账号"),
-});
 
 import { FormikTextInput } from "@/components/FormItem";
 import theme from "@/const/theme";
 import { Formik } from "formik";
 import { useEffect } from "react";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/components/ToastConfig";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -69,6 +66,7 @@ export default function LoginScreen() {
             )}
             <Text style={styles.buttonText}>登录</Text>
           </TouchableOpacity>
+          <Toast config={toastConfig} visibilityTime={2000} />
         </View>
       )}
     </Formik>

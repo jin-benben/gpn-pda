@@ -45,7 +45,7 @@ const LocationModal = ({whsCode,areaType,visible,onClose,onChange}:LocationModal
     if(visible){
       mutate()
     }
-  },[visible])
+  },[visible,searchText])
   const onSelect=(v:LocationItem)=>{
     onChange?.(v)
     onClose()

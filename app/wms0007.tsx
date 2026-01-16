@@ -466,7 +466,6 @@ const ReceiverModeItem = () => {
     <EnumSelect
       value={field.value}
       onChange={onChange}
-      className="flex-1"
       enumKey="wms000701ReceiverMode"
     />
   );

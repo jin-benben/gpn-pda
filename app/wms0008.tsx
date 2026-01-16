@@ -128,12 +128,7 @@ export default function App() {
   const inputRef = useRef<SearchInput>(null);
 
   const {isPending,data,mutate} = useCustomMutation({
-    mutationFn:getPushDataFetch,
-    onSuccess:(res)=>{
-      if(res.length){
-
-      }
-    }
+    mutationFn:getPushDataFetch
   })
 
   useEffect(()=>{

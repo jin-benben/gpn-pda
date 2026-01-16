@@ -5,6 +5,7 @@ import Empty from "@/components/ui/Empty";
 import useEnum from "@/hooks/useEnum";
 import useCustomMutation from "@/hooks/useMutation";
 import { queryListFetch } from "@/lib/commonServices";
+import { getLocalUserInfo } from "@/lib/util";
 import { useIsFocused } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
@@ -63,6 +64,7 @@ export default function App() {
         data:{
           docStatusList:["2"],
           processingMethod:"1",
+          whsCode:getLocalUserInfo()?.whsCode,
           page:1,
           size:100,
           orderBy:[

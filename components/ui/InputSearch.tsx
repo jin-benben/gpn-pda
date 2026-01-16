@@ -2,7 +2,7 @@
 import theme from '@/const/theme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import React, { RefObject, use, useEffect, useImperativeHandle, useInsertionEffect, useRef } from 'react';
-import { StyleSheet, TextInput, TextInputProps, Touchable, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, ToastAndroid, Touchable, TouchableOpacity, View } from 'react-native';
 
 export interface SearchInput extends Pick<TextInput,"focus"|"blur">{
   
@@ -21,6 +21,7 @@ const InputSearch: React.FC<InputSearchProps> = ({
 }) => {
   const inputRef = useRef<TextInput | null>(null);
   const handleSubmit = (e: any) => {
+    ToastAndroid.show(e.nativeEvent.text,ToastAndroid.LONG)
     onSubmitEditing?.(e);
     onSearch?.(e.nativeEvent.text);
   };
@@ -59,7 +60,6 @@ const InputSearch: React.FC<InputSearchProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     width: "100%",
     backgroundColor: "white",
+    zIndex:0
   },
   input: {
     flex: 1,
